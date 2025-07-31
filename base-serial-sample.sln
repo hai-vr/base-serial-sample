@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "base-serial-sample-program", "base-serial-sample-program\base-serial-sample-program.csproj", "{3208FDAC-E11B-4ACE-9212-078D4469793F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "tcode", "tcode\tcode.csproj", "{0E6C0405-9A6D-43FD-BB8B-5D00D693CE24}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3208FDAC-E11B-4ACE-9212-078D4469793F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3208FDAC-E11B-4ACE-9212-078D4469793F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3208FDAC-E11B-4ACE-9212-078D4469793F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3208FDAC-E11B-4ACE-9212-078D4469793F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E6C0405-9A6D-43FD-BB8B-5D00D693CE24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E6C0405-9A6D-43FD-BB8B-5D00D693CE24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E6C0405-9A6D-43FD-BB8B-5D00D693CE24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E6C0405-9A6D-43FD-BB8B-5D00D693CE24}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
