@@ -31,6 +31,7 @@ internal class MainApp
         
         _uiThread = new Thread(o =>
         {
+            _uiMain.Initialize();
             _windowRendering.UiLoop();
             WhenWindowClosed();
         })

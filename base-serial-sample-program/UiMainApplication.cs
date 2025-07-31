@@ -15,10 +15,19 @@ public class UiMainApplication
     private const string SubmitLabel = "Submit";
 
     private readonly UiActions _uiActions;
-    
+    private string[] _portNames;
+    private int _selectedPortIndex;
+    private string _selectedPortName = "";
+
     public UiMainApplication(UiActions uiActions)
     {
         _uiActions = uiActions;
+    }
+
+    public void Initialize()
+    {
+        UpdatePortNames();
+        _selectedPortName = _portNames.Length > 0 ? _portNames[0] : "";
     }
 
     public void SubmitUi(CustomImGuiController controller, Sdl2Window window)
@@ -37,10 +46,33 @@ public class UiMainApplication
         var rawData = _uiActions.ExposeRawData();
         var isSerialOpen = _uiActions.IsSerialOpen();
         
-        ImGui.BeginDisabled(isSerialOpen);
+        ImGui.BeginDisabled(isSerialOpen || _selectedPortName == "");
         if (ImGui.Button(OpenSerialLabel))
         {
-            _uiActions.ConnectSerial();
+            _uiActions.ConnectSerial(_selectedPortName);
+        }
+        ImGui.EndDisabled();
+        
+        ImGui.SameLine();
+        
+        ImGui.BeginDisabled(isSerialOpen);
+        if (ImGui.BeginCombo("##PortCombo", _selectedPortName))
+        {
+            for (int i = 0; i < _portNames.Length; i++)
+            {
+                bool isSelected = (_selectedPortIndex == i);
+                if (ImGui.Selectable(_portNames[i], isSelected))
+                {
+                    _selectedPortIndex = i;
+                    _selectedPortName = _portNames[i];
+                }
+                
+                if (isSelected)
+                {
+                    ImGui.SetItemDefaultFocus();
+                }
+            }
+            ImGui.EndCombo();
         }
         ImGui.EndDisabled();
         
@@ -65,5 +97,10 @@ public class UiMainApplication
             _uiActions.Submit();
         }
         ImGui.EndDisabled();
+    }
+
+    private void UpdatePortNames()
+    {
+        _portNames = _uiActions.FetchPortNames();
     }
 }

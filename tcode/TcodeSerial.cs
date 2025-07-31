@@ -10,7 +10,12 @@ public class TcodeSerial
 
     public bool IsOpen => _port != null && _ready;
 
-    public void OpenSerial()
+    public string[] FetchPortNames()
+    {
+        return SerialPort.GetPortNames();
+    }
+
+    public void OpenSerial(string portName)
     {
         if (_port != null)
         {
@@ -18,9 +23,18 @@ public class TcodeSerial
             _port.Close();
             _port = null;
         }
-        _port = new SerialPort("COM4", 115200, Parity.None, 8, StopBits.One);
-        _port.Open();
-        _ready = true;
+
+        try
+        {
+            _port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
+            _port.Open();
+            _ready = true;
+        }
+        catch (Exception e)
+        {
+            _port = null;
+            _ready = false;
+        }
     }
 
     public void CloseSerial()

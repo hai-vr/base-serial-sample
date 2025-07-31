@@ -9,9 +9,9 @@ public class UiActions
         _routine = routine;
     }
 
-    public void ConnectSerial()
+    public void ConnectSerial(string portName)
     {
-        _routine.Enqueue(() => _routine.TryConnectSerial());
+        _routine.Enqueue(() => _routine.TryConnectSerial(portName));
     }
 
     public void DisconnectSerial()
@@ -27,6 +27,11 @@ public class UiActions
     public TcodeData ExposeRawData()
     {
         return _routine.RawSerialData;
+    }
+
+    public string[] FetchPortNames()
+    {
+        return _routine.FetchPortNames();
     }
 
     public void Submit()

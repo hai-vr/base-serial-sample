@@ -31,11 +31,16 @@ public class Routine
         }
     }
 
-    public void TryConnectSerial()
+    public string[] FetchPortNames()
+    {
+        return _serial.FetchPortNames();
+    }
+
+    public void TryConnectSerial(string portName)
     {
         if (_serial.IsOpen) return;
         
-        _serial.OpenSerial();
+        _serial.OpenSerial(portName);
     }
 
     public void TryDisconnectSerial()
