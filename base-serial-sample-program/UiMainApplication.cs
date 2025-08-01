@@ -1,4 +1,5 @@
 using System.Numerics;
+using extractor_openvr;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -24,6 +25,7 @@ public class UiMainApplication
     private Texture _cachedTexture;
     private int _lastWidth;
     private int _lastHeight;
+    private IntPtr _textureId;
 
     public UiMainApplication(UiActions uiActions)
     {
@@ -111,42 +113,10 @@ public class UiMainApplication
         ImGui.EndDisabled();
         
         var extractedData = _uiActions.ExtractedData();
-        if (extractedData.Width > 0 && extractedData.Height > 0)
+        if (extractedData.IsValid())
         {
-            if (extractedData.Iteration != _lastExtractedDataIteration)
-            {
-                _lastExtractedDataIteration = extractedData.Iteration;
-                if (_cachedTexture == null || _lastWidth != extractedData.Width || _lastHeight != extractedData.Height)
-                {
-                    _cachedTexture?.Dispose();
-                    _cachedTexture = controller.Graphics.ResourceFactory.CreateTexture(new TextureDescription(
-                        (uint)extractedData.Width,
-                        (uint)extractedData.Height,
-                        1, // depth
-                        1, // mipLevels
-                        1, // arrayLayers
-                        PixelFormat.R8_G8_B8_A8_UNorm,
-                        TextureUsage.Sampled,
-                        TextureType.Texture2D
-                    ));
-                    _lastWidth = extractedData.Width;
-                    _lastHeight = extractedData.Height;
-                }
-            
-                controller.Graphics.UpdateTexture(
-                    _cachedTexture,
-                    extractedData.Data,
-                    0, 0, 0, // x, y, z offsets
-                    (uint)extractedData.Width,
-                    (uint)extractedData.Height,
-                    1, // depth
-                    0, // mipLevel
-                    0  // arrayLayer
-                );
-            }
-        
-            var textureId = controller.GetOrCreateImGuiBinding(controller.Graphics.ResourceFactory, _cachedTexture);
-        
+            var textureId = TurnDataIntoTexture(controller, extractedData);
+
             ImGui.Text($"{extractedData.Iteration}");
             ImGui.Image(textureId, new Vector2(_lastHeight, _lastHeight));
             var location = _uiActions.Location();
@@ -156,6 +126,44 @@ public class UiMainApplication
             ImGui.SliderInt("H", ref location.H, 0, 1024);
             ImGui.Checkbox("Use right eye", ref location.useRightEye);
         }
+    }
+
+    private IntPtr TurnDataIntoTexture(CustomImGuiController controller, ExtractionResult extractedData)
+    {
+        if (extractedData.Iteration == _lastExtractedDataIteration) return _textureId;
+        
+        _lastExtractedDataIteration = extractedData.Iteration;
+        if (_cachedTexture == null || _lastWidth != extractedData.Width || _lastHeight != extractedData.Height)
+        {
+            _cachedTexture?.Dispose();
+            _cachedTexture = controller.Graphics.ResourceFactory.CreateTexture(new TextureDescription(
+                (uint)extractedData.Width,
+                (uint)extractedData.Height,
+                1, // depth
+                1, // mipLevels
+                1, // arrayLayers
+                PixelFormat.R8_G8_B8_A8_UNorm,
+                TextureUsage.Sampled,
+                TextureType.Texture2D
+            ));
+            _lastWidth = extractedData.Width;
+            _lastHeight = extractedData.Height;
+        }
+            
+        controller.Graphics.UpdateTexture(
+            _cachedTexture,
+            extractedData.ColorData,
+            0, 0, 0, // x, y, z offsets
+            (uint)extractedData.Width,
+            (uint)extractedData.Height,
+            1, // depth
+            0, // mipLevel
+            0  // arrayLayer
+        );
+            
+        _textureId = controller.GetOrCreateImGuiBinding(controller.Graphics.ResourceFactory, _cachedTexture);
+
+        return _textureId;
     }
 
     private void UpdatePortNames()

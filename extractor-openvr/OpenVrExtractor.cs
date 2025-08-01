@@ -26,9 +26,11 @@ public class OpenVrExtractor
     private ID3D11Texture2D _texture2DID;
     private int _texture2DID_W;
     private int _texture2DID_H;
-    private byte[] _holdingData;
+    private byte[] _monochromaticData;
     private int _extractionIteration;
-    private byte[] _holdingDataB;
+    private byte[] _monochromaticDataB;
+    private byte[] _marshalData;
+    private byte[] _marshalDataB;
 
     public class EyeResource
     {
@@ -121,11 +123,8 @@ public class OpenVrExtractor
     public ExtractionResult Extract(bool useRightEye, int x, int y, int w, int h)
     {
         var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.
-        return Extract(useRightEye, new Box(x, y, 0, x + w, y + h, back));
-    }
-
-    private ExtractionResult Extract(bool useRightEye, Box box)
-    {
+        var box = new Box(x, y, 0, x + w, y + h, back);
+        
         var eyeResource = useRightEye ? _right : _left;
         
         var captureWidth = box.Width;
@@ -155,31 +154,41 @@ public class OpenVrExtractor
         {
             var desc2dHeight = captureHeight;
             var desc2dWidth = captureWidth;
-            var neededDataSize = desc2dHeight * desc2dWidth * 4;
-            if (_holdingData == null || _holdingData.Length != neededDataSize)
+            var marshalDataSize = desc2dHeight * desc2dWidth * 4;
+            var monochromaticDataSize = desc2dHeight * desc2dWidth;
+            if (_monochromaticData == null || _monochromaticData.Length != monochromaticDataSize)
             {
-                _holdingData = new byte[neededDataSize];
-                _holdingDataB = new byte[neededDataSize];
+                _monochromaticData = new byte[monochromaticDataSize];
+                _monochromaticDataB = new byte[monochromaticDataSize];
+                _marshalData = new byte[marshalDataSize];
+                _marshalDataB = new byte[marshalDataSize];
             }
 
-            var holding = _holdingDataB;
-            Marshal.Copy(mappedResource.DataPointer, holding, 0, holding.Length);
-            for (var i = 0; i < _holdingData.Length; i += 4)
+            Marshal.Copy(mappedResource.DataPointer, _marshalDataB, 0, _marshalDataB.Length);
+            for (var iMarshal = 0; iMarshal < _marshalData.Length; iMarshal += 4)
             {
-                if (holding[i] == 0 && holding[i + 1] == 0 && holding[i + 2] == 0)
+                var iMonochromatic = iMarshal / 4;
+                _monochromaticDataB[iMonochromatic] = _marshalData[iMarshal + 1]; // This is the green channel
+                
+                var isPureBlackPixel = _marshalDataB[iMarshal] == 0 && _marshalDataB[iMarshal + 1] == 0 && _marshalDataB[iMarshal + 2] == 0;
+                if (isPureBlackPixel)
                 {
-                    holding[i] = 255;
+                    _marshalDataB[iMarshal] = 255;
                 }
-                holding[i + 3] = 255;
+                _marshalDataB[iMarshal + 3] = 255;
             }
-            (_holdingData, _holdingDataB) = (_holdingDataB, _holdingData);
-        }
-        _context.Unmap(_texture2DID, 0);
+            (_monochromaticData, _monochromaticDataB) = (_monochromaticDataB, _monochromaticData);
+            (_marshalData, _marshalDataB) = (_marshalDataB, _marshalData);
+            
+            _context.Unmap(_texture2DID, 0);
 
-        _extractionIteration++;
+            _extractionIteration++;
+        }
+        
         return new ExtractionResult
         {
-            Data = _holdingData,
+            MonochromaticData = _monochromaticData,
+            ColorData = _marshalData,
             Width = captureWidth,
             Height = captureHeight,
             Iteration = _extractionIteration
@@ -189,8 +198,14 @@ public class OpenVrExtractor
 
 public struct ExtractionResult
 {
-    public byte[] Data;
+    public byte[] MonochromaticData;
+    public byte[] ColorData;
     public int Width;
     public int Height;
     public int Iteration;
+
+    public bool IsValid()
+    {
+        return Width > 0 && Height > 0;
+    }
 }
