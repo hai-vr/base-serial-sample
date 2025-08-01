@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using extractor_openvr;
 using Hai.PositionSystemToExternalProgram.ExampleApp;
 using Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
 using Hai.PositionSystemToExternalProgram.Extractor.OVR;
@@ -23,7 +24,8 @@ internal class MainApp
     {
         var serial = new TcodeSerial();
         var ovrStarter = new OpenVrStarter();
-        _routine = new Routine(serial, ovrStarter);
+        var ovrExtractor = new OpenVrExtractor(ovrStarter);
+        _routine = new Routine(serial, ovrStarter, ovrExtractor);
         
         _uiMain = new UiMainApplication(new UiActions(_routine));
         

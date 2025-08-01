@@ -1,5 +1,6 @@
 using System.Numerics;
 using ImGuiNET;
+using Veldrid;
 using Veldrid.Sdl2;
 
 namespace Hai.BaseSerial.SampleProgram;
@@ -18,6 +19,11 @@ public class UiMainApplication
     private string[] _portNames;
     private int _selectedPortIndex;
     private string _selectedPortName = "";
+    
+    private int _lastExtractedDataIteration;
+    private Texture _cachedTexture;
+    private int _lastWidth;
+    private int _lastHeight;
 
     public UiMainApplication(UiActions uiActions)
     {
@@ -36,12 +42,12 @@ public class UiMainApplication
         ImGui.SetNextWindowSize(new Vector2(window.Width, window.Height), ImGuiCond.Always);
         ImGui.Begin("###main", WindowFlagsNoCollapse | ImGuiWindowFlags.NoTitleBar | ImGuiWindowFlags.NoBackground | ImGuiWindowFlags.NoScrollbar);
 
-        DrawMain();
+        DrawMain(controller, window);
         
         ImGui.End();
     }
 
-    private void DrawMain()
+    private void DrawMain(CustomImGuiController controller, Sdl2Window window)
     {
         var rawData = _uiActions.ExposeRawData();
         var isSerialOpen = _uiActions.IsSerialOpen();
@@ -103,6 +109,53 @@ public class UiMainApplication
             _uiActions.Submit();
         }
         ImGui.EndDisabled();
+        
+        var extractedData = _uiActions.ExtractedData();
+        if (extractedData.Width > 0 && extractedData.Height > 0)
+        {
+            if (extractedData.Iteration != _lastExtractedDataIteration)
+            {
+                _lastExtractedDataIteration = extractedData.Iteration;
+                if (_cachedTexture == null || _lastWidth != extractedData.Width || _lastHeight != extractedData.Height)
+                {
+                    _cachedTexture?.Dispose();
+                    _cachedTexture = controller.Graphics.ResourceFactory.CreateTexture(new TextureDescription(
+                        (uint)extractedData.Width,
+                        (uint)extractedData.Height,
+                        1, // depth
+                        1, // mipLevels
+                        1, // arrayLayers
+                        PixelFormat.R8_G8_B8_A8_UNorm,
+                        TextureUsage.Sampled,
+                        TextureType.Texture2D
+                    ));
+                    _lastWidth = extractedData.Width;
+                    _lastHeight = extractedData.Height;
+                }
+            
+                controller.Graphics.UpdateTexture(
+                    _cachedTexture,
+                    extractedData.Data,
+                    0, 0, 0, // x, y, z offsets
+                    (uint)extractedData.Width,
+                    (uint)extractedData.Height,
+                    1, // depth
+                    0, // mipLevel
+                    0  // arrayLayer
+                );
+            }
+        
+            var textureId = controller.GetOrCreateImGuiBinding(controller.Graphics.ResourceFactory, _cachedTexture);
+        
+            ImGui.Text($"{extractedData.Iteration}");
+            ImGui.Image(textureId, new Vector2(_lastHeight, _lastHeight));
+            var location = _uiActions.Location();
+            ImGui.SliderInt("X", ref location.X, 0, 2048);
+            ImGui.SliderInt("Y", ref location.Y, 0, 2048);
+            ImGui.SliderInt("W", ref location.W, 0, 1024);
+            ImGui.SliderInt("H", ref location.H, 0, 1024);
+            ImGui.Checkbox("Use right eye", ref location.useRightEye);
+        }
     }
 
     private void UpdatePortNames()

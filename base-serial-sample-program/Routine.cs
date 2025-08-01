@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
+using extractor_openvr;
 using Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
 using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 
@@ -10,9 +11,12 @@ public class Routine
 {
     private readonly TcodeSerial _serial;
     private readonly OpenVrStarter _ovrStarter;
+    private readonly OpenVrExtractor _ovrExtractor;
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
+    public ExtractionResult ExtractedData { get; private set; }
+    public ExtractLocation Location { get; private set; } = new();
 
     private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
     private readonly Stopwatch _stopwatch;
@@ -20,10 +24,11 @@ public class Routine
     private bool _exitRequested;
     private double _nextStartOpenVrTime;
 
-    public Routine(TcodeSerial serial, OpenVrStarter ovrStarter)
+    public Routine(TcodeSerial serial, OpenVrStarter ovrStarter, OpenVrExtractor ovrExtractor)
     {
         _serial = serial;
         _ovrStarter = ovrStarter;
+        _ovrExtractor = ovrExtractor;
         RawSerialData = new TcodeData();
 
         _ovrStarter.OnExited += () => Enqueue(() =>
@@ -72,7 +77,11 @@ public class Routine
             action.Invoke();
         }
 
-        if (!IsOpenVrRunning)
+        if (IsOpenVrRunning)
+        {
+            _ovrStarter.PollVrEvents();
+        }
+        else
         {
             if (_stopwatch.Elapsed.TotalSeconds > _nextStartOpenVrTime)
             {
@@ -80,9 +89,19 @@ public class Routine
                 IsOpenVrRunning = _ovrStarter.TryStart();
             }
         }
-        else
+
+        // We do the check again, as PollVrEvents may have shut OpenVR down.
+        if (IsOpenVrRunning)
         {
-            _ovrStarter.PollVrEvents();
+            var deviceInitialized = _ovrExtractor.TryInitializeDevice();
+            if (deviceInitialized)
+            {
+                var ovrInitialized = _ovrExtractor.TryInitializeOpenVrResources();
+                if (ovrInitialized)
+                {
+                    ExtractedData = _ovrExtractor.Extract(Location.useRightEye, Location.X, Location.Y, Location.W, Location.H);
+                }
+            }
         }
         
         if (_serial.IsOpen && RawSerialData.autoUpdate)
@@ -119,4 +138,13 @@ public class TcodeData
     public int R1 = 5000;
     public int R2 = 5000;
     public bool autoUpdate = true;
+}
+
+public class ExtractLocation
+{
+    public int X = 0;
+    public int Y = 0;
+    public int W = 512;
+    public int H = 512;
+    public bool useRightEye = false;
 }

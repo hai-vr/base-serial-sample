@@ -1,3 +1,5 @@
+using extractor_openvr;
+
 namespace Hai.BaseSerial.SampleProgram;
 
 public class UiActions
@@ -26,6 +28,8 @@ public class UiActions
 
     public TcodeData ExposeRawData() => _routine.RawSerialData;
     public bool IsOpenVrRunning() => _routine.IsOpenVrRunning;
+    public ExtractionResult ExtractedData() => _routine.ExtractedData;
+    public ExtractLocation Location() => _routine.Location;
 
     public string[] FetchPortNames()
     {
