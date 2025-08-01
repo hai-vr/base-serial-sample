@@ -1,7 +1,7 @@
 ﻿using System.Globalization;
-using System.Threading;
 using Hai.PositionSystemToExternalProgram.ExampleApp;
 using Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
+using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 
 namespace Hai.BaseSerial.SampleProgram;
 
@@ -22,7 +22,8 @@ internal class MainApp
     private MainApp()
     {
         var serial = new TcodeSerial();
-        _routine = new Routine(serial);
+        var ovrStarter = new OpenVrStarter();
+        _routine = new Routine(serial, ovrStarter);
         
         _uiMain = new UiMainApplication(new UiActions(_routine));
         

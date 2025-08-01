@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\extractor-openvr\extractor-openvr.csproj" />
       <ProjectReference Include="..\tcode\tcode.csproj" />
     </ItemGroup>
 

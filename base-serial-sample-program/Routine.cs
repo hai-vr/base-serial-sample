@@ -1,21 +1,36 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
+using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 
 namespace Hai.BaseSerial.SampleProgram;
 
 public class Routine
 {
     private readonly TcodeSerial _serial;
-    
-    private bool _exitRequested;
-    private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
+    private readonly OpenVrStarter _ovrStarter;
+
+    public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
 
-    public Routine(TcodeSerial serial)
+    private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
+    private readonly Stopwatch _stopwatch;
+    
+    private bool _exitRequested;
+    private double _nextStartOpenVrTime;
+
+    public Routine(TcodeSerial serial, OpenVrStarter ovrStarter)
     {
         _serial = serial;
+        _ovrStarter = ovrStarter;
         RawSerialData = new TcodeData();
+
+        _ovrStarter.OnExited += () => Enqueue(() =>
+        {
+            IsOpenVrRunning = false;
+        });
+        _stopwatch = Stopwatch.StartNew();
     }
 
     public void Enqueue(Action action)
@@ -55,6 +70,19 @@ public class Routine
         while (_queuedForMain.TryDequeue(out var action))
         {
             action.Invoke();
+        }
+
+        if (!IsOpenVrRunning)
+        {
+            if (_stopwatch.Elapsed.TotalSeconds > _nextStartOpenVrTime)
+            {
+                _nextStartOpenVrTime = _stopwatch.Elapsed.TotalSeconds + 5;
+                IsOpenVrRunning = _ovrStarter.TryStart();
+            }
+        }
+        else
+        {
+            _ovrStarter.PollVrEvents();
         }
         
         if (_serial.IsOpen && RawSerialData.autoUpdate)

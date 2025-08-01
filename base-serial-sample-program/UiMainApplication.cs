@@ -45,6 +45,12 @@ public class UiMainApplication
     {
         var rawData = _uiActions.ExposeRawData();
         var isSerialOpen = _uiActions.IsSerialOpen();
+        var isOpenVrRunning = _uiActions.IsOpenVrRunning();
+
+        if (!isOpenVrRunning)
+        {
+            ImGui.Text("OpenVR is not running.");
+        }
         
         ImGui.BeginDisabled(isSerialOpen || _selectedPortName == "");
         if (ImGui.Button(OpenSerialLabel))

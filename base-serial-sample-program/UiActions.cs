@@ -24,10 +24,8 @@ public class UiActions
         return _routine.IsSerialOpen();
     }
 
-    public TcodeData ExposeRawData()
-    {
-        return _routine.RawSerialData;
-    }
+    public TcodeData ExposeRawData() => _routine.RawSerialData;
+    public bool IsOpenVrRunning() => _routine.IsOpenVrRunning;
 
     public string[] FetchPortNames()
     {
