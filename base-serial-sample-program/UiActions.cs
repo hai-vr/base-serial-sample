@@ -1,4 +1,4 @@
-using extractor_openvr;
+using Hai.PositionSystemToExternalProgram.Core;
 
 namespace Hai.BaseSerial.SampleProgram;
 

@@ -1,7 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using extractor_openvr;
+using Hai.PositionSystemToExternalProgram.Extractors.OVR;
+using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
 using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 
@@ -36,6 +37,11 @@ public class Routine
             IsOpenVrRunning = false;
         });
         _stopwatch = Stopwatch.StartNew();
+        
+        ExtractedData = new ExtractionResult
+        {
+            Success = false
+        };
     }
 
     public void Enqueue(Action action)
@@ -79,6 +85,7 @@ public class Routine
 
         if (IsOpenVrRunning)
         {
+            // We need to poll events, because we need to detect when SteamVR is shutting down.
             _ovrStarter.PollVrEvents();
         }
         else
@@ -93,14 +100,11 @@ public class Routine
         // We do the check again, as PollVrEvents may have shut OpenVR down.
         if (IsOpenVrRunning)
         {
-            var deviceInitialized = _ovrExtractor.TryInitializeDevice();
-            if (deviceInitialized)
+            var eye = Location.useRightEye ? ExtractionSource.RightEye : ExtractionSource.LeftEye;
+            var result = _ovrExtractor.Extract(eye, Location.X, Location.Y, Location.W, Location.H);
+            if (result.Success)
             {
-                var ovrInitialized = _ovrExtractor.TryInitializeOpenVrResources();
-                if (ovrInitialized)
-                {
-                    ExtractedData = _ovrExtractor.Extract(Location.useRightEye, Location.X, Location.Y, Location.W, Location.H);
-                }
+                ExtractedData = result;
             }
         }
         

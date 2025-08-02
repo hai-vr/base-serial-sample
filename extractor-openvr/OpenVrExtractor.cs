@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 using SharpGen.Runtime;
 using Valve.VR;
@@ -7,7 +8,7 @@ using Vortice.Direct3D11;
 using Vortice.Mathematics;
 using static Vortice.Direct3D11.D3D11;
 
-namespace extractor_openvr;
+namespace Hai.PositionSystemToExternalProgram.Extractors.OVR;
 
 public class OpenVrExtractor
 {
@@ -26,8 +27,8 @@ public class OpenVrExtractor
     private ID3D11Texture2D _texture2DID;
     private int _texture2DID_W;
     private int _texture2DID_H;
-    private byte[] _monochromaticData;
     private int _extractionIteration;
+    private byte[] _monochromaticData;
     private byte[] _monochromaticDataB;
     private byte[] _marshalData;
     private byte[] _marshalDataB;
@@ -69,7 +70,7 @@ public class OpenVrExtractor
         // TODO: ReleaseMirrorTextureD3D11 when we exit this app?
     }
 
-    public bool TryInitializeDevice()
+    private bool TryInitializeDevice()
     {
         if (_isDeviceInitialized) return true;
         
@@ -92,7 +93,7 @@ public class OpenVrExtractor
         return true;
     }
 
-    public bool TryInitializeOpenVrResources()
+    private bool TryInitializeOpenVrResources()
     {
         if (!_isDeviceInitialized) return false;
         if (!_isOpenVrReady) return false;
@@ -120,12 +121,21 @@ public class OpenVrExtractor
         return true;
     }
     
-    public ExtractionResult Extract(bool useRightEye, int x, int y, int w, int h)
+    public ExtractionResult Extract(ExtractionSource source, int x, int y, int w, int h)
     {
+        var isInitialized = TryInitializeDevice() && TryInitializeOpenVrResources();
+        if (!isInitialized)
+        {
+            return new ExtractionResult
+            {
+                Success = false
+            };
+        }
+        
         var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.
         var box = new Box(x, y, 0, x + w, y + h, back);
         
-        var eyeResource = useRightEye ? _right : _left;
+        var eyeResource = source == ExtractionSource.RightEye ? _right : _left;
         
         var captureWidth = box.Width;
         var captureHeight = box.Height;
@@ -164,6 +174,9 @@ public class OpenVrExtractor
                 _marshalDataB = new byte[marshalDataSize];
             }
 
+            // We write in B, because A was returned in the last iteration, and the UI thread might be currently reading it.
+            // This should give enough time for the UI thread to finish reading the data in A;
+            // it's unlikely we're doing two iterations while the UI thread is still reading it.
             Marshal.Copy(mappedResource.DataPointer, _marshalDataB, 0, _marshalDataB.Length);
             for (var iMarshal = 0; iMarshal < _marshalData.Length; iMarshal += 4)
             {
@@ -187,25 +200,12 @@ public class OpenVrExtractor
         
         return new ExtractionResult
         {
+            Success = true,
             MonochromaticData = _monochromaticData,
             ColorData = _marshalData,
             Width = captureWidth,
             Height = captureHeight,
             Iteration = _extractionIteration
         };
-    }
-}
-
-public struct ExtractionResult
-{
-    public byte[] MonochromaticData;
-    public byte[] ColorData;
-    public int Width;
-    public int Height;
-    public int Iteration;
-
-    public bool IsValid()
-    {
-        return Width > 0 && Height > 0;
     }
 }
