@@ -1,0 +1,86 @@
+<mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36" version="28.0.6">
+  <diagram name="Page-1" id="_O7x02yfuFzLC3gzs4My">
+    <mxGraphModel dx="1563" dy="1391" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-1" value="Large Native Texture (e.g. window)" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="120" width="720" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-2" value="Oversized byte array" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;fillColor=#dae8fc;strokeColor=#3399FF;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="240" width="200" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-4" value="Data pixels&lt;br&gt;&lt;div&gt;byte array&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;fillColor=#f8cecc;strokeColor=#FF0000;" vertex="1" parent="1">
+          <mxGeometry x="-40" y="280" width="70" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-9" value="System (OpenVR API, GDI, ...)" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;strokeColor=#D0D0D0;" vertex="1" parent="1">
+          <mxGeometry x="400" y="40" width="280" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-12" value="Data bit&amp;nbsp;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;array&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;fillColor=#CCFFCC;strokeColor=#00FF00;" vertex="1" parent="1">
+          <mxGeometry x="-200" y="280" width="70" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-13" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.542;exitY=0.091;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.429;entryY=0.417;entryDx=0;entryDy=0;entryPerimeter=0;sketch=1;curveFitting=1;jiggle=2;" edge="1" parent="1" target="dc7SDPxQxraWpXHqd0R4-12">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-10" y="330" as="sourcePoint" />
+            <mxPoint x="-240" y="450" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-14" value="Color removal" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dc7SDPxQxraWpXHqd0R4-13">
+          <mxGeometry x="-0.1183" y="4" relative="1" as="geometry">
+            <mxPoint x="-4" y="6" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-15" value="Layout information" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;strokeColor=#D0D0D0;" vertex="1" parent="1">
+          <mxGeometry x="-200" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-16" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.583;exitY=0.875;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="dc7SDPxQxraWpXHqd0R4-15" target="dc7SDPxQxraWpXHqd0R4-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-180" y="160" as="sourcePoint" />
+            <mxPoint x="-130" y="110" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-17" value="Position of region,&lt;div&gt;Number of columns,&lt;/div&gt;&lt;div&gt;Square size,&lt;/div&gt;&lt;div&gt;Version in use&lt;/div&gt;" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dc7SDPxQxraWpXHqd0R4-16">
+          <mxGeometry x="-0.29" y="1" relative="1" as="geometry">
+            <mxPoint x="-13" y="-24" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-18" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.917;exitY=0.5;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" target="dc7SDPxQxraWpXHqd0R4-9">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-100.00000000000003" y="40" as="sourcePoint" />
+            <mxPoint x="69.96000000000001" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-19" value="Current system being used (VR, GDI, ...)" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dc7SDPxQxraWpXHqd0R4-18">
+          <mxGeometry x="-0.5225" y="-2" relative="1" as="geometry">
+            <mxPoint x="151" y="-2" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-20" value="&lt;b&gt;Data&lt;/b&gt;&lt;div&gt;&lt;b&gt;&lt;br&gt;&lt;/b&gt;&lt;div&gt;&lt;span style=&quot;font-size: 11px; text-wrap-mode: nowrap; background-color: rgb(255, 255, 255);&quot;&gt;Data integrity,&lt;/span&gt;&lt;div style=&quot;font-size: 11px; text-wrap-mode: nowrap;&quot;&gt;Version in use,&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap-mode: nowrap;&quot;&gt;Time,&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap-mode: nowrap;&quot;&gt;Light data,&lt;/div&gt;&lt;div style=&quot;font-size: 11px; text-wrap-mode: nowrap;&quot;&gt;Projection data&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="rounded=0;whiteSpace=wrap;html=1;strokeWidth=3;align=center;verticalAlign=top;strokeColor=#D0D0D0;" vertex="1" parent="1">
+          <mxGeometry x="-200" y="520" width="120" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-21" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.429;exitY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;sketch=1;curveFitting=1;jiggle=2;entryX=0.25;entryY=0.167;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="dc7SDPxQxraWpXHqd0R4-12" target="dc7SDPxQxraWpXHqd0R4-20">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="-160" y="520" as="sourcePoint" />
+            <mxPoint x="-170" y="530" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-22" value="Decoding" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dc7SDPxQxraWpXHqd0R4-21">
+          <mxGeometry x="-0.3172" y="-2" relative="1" as="geometry">
+            <mxPoint y="32" as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-6" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.679;exitY=0.75;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.714;entryY=0.417;entryDx=0;entryDy=0;entryPerimeter=0;sketch=1;curveFitting=1;jiggle=2;" edge="1" parent="1" source="dc7SDPxQxraWpXHqd0R4-9" target="dc7SDPxQxraWpXHqd0R4-4">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="70" y="100" as="sourcePoint" />
+            <mxPoint x="120" y="50" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="dc7SDPxQxraWpXHqd0R4-7" value="Extraction" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" vertex="1" connectable="0" parent="dc7SDPxQxraWpXHqd0R4-6">
+          <mxGeometry x="-0.1183" y="4" relative="1" as="geometry">
+            <mxPoint x="-1" y="4" as="offset" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
