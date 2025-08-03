@@ -1,4 +1,4 @@
-﻿namespace Hai.PositionSystemToExternalProgram.Processors;
+﻿namespace Hai.PositionSystemToExternalProgram.Core;
 
 public class PositionSystemDataLayout
 {

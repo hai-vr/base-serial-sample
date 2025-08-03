@@ -18,7 +18,7 @@ public static class WindowNameBiz
     /// Return true to continue searching, false to halt enumeration (e.g. when found first result).
     public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
 
-    public static IEnumerable<IntPtr> FindWindowsWithText(string titleText)
+    public static IEnumerable<IntPtr> FindWindowsWithText(Predicate<string> predicateFn)
     {
         return EnumerateWindows((wnd, _) => 
         {
@@ -29,7 +29,7 @@ public static class WindowNameBiz
                 Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to get window text of {windowText}");
             }
             
-            return windowText == titleText;
+            return predicateFn(windowText);
         });
     }
 

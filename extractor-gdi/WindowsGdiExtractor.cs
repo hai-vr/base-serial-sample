@@ -8,7 +8,7 @@ namespace Hai.PositionSystemToExternalProgram.Extractors.GDI;
 // cnlohr: https://github.com/cnlohr/swadge-vrchat-bridge/blob/db33f403d3dcfe81524320bbf736a78e9c1a169d/bridgeapp/bridgeapp.c
 // https://youtu.be/VnZac6lA1_k?t=828
 /// Extracts the entire window screen of a process, possibly including title bar and borders of that screen.
-public class WindowGdiTextureExtractor
+public class WindowGdiExtractor
 {
     private const bool IsMinimalMode = false; // TODO: Make this true only if the UI is displaying the picture
     
@@ -17,7 +17,7 @@ public class WindowGdiTextureExtractor
     
     private readonly Stopwatch _time;
 
-    public string desiredWindowName;
+    public string desiredWindowName = "";
     
     // Unused debug outputs
     private int _bigWindowWidth;
@@ -49,7 +49,7 @@ public class WindowGdiTextureExtractor
     private byte[] _marshalData;
     private byte[] _marshalDataB;
 
-    public WindowGdiTextureExtractor()
+    public WindowGdiExtractor()
     {
         _time = Stopwatch.StartNew();
     }
@@ -66,7 +66,7 @@ public class WindowGdiTextureExtractor
         
         var sw = Stopwatch.StartNew();
         // This can take a long time, like 350ms
-        var wnds = WindowNameBiz.FindWindowsWithText(desiredWindowName).ToList();
+        var wnds = WindowNameBiz.FindWindowsWithText(windowName => windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant())).ToList();
         Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to enumerate windows");
         
         if (wnds.Count == 0) return;
@@ -94,24 +94,33 @@ public class WindowGdiTextureExtractor
         }
     }
 
-    public ExtractionResult Extract(ExtractionSource source, int x, int y, int w, int h)
+    public ExtractionResult Extract(ExtractionSource source, ExtractionCoordinates coordinates)
     {
-        _offsetX = x;
-        _offsetY = y;
-        _width = w;
-        _height = h;
-        var monochromaticDataSize = _height * _width;
-        var directXDataSize = _height * _width * 4;
-        if (_monochromaticData == null || _monochromaticData.Length != monochromaticDataSize)
-        {
-            _monochromaticData = new byte[monochromaticDataSize];
-            _monochromaticDataB = new byte[monochromaticDataSize];
-            _marshalData = new byte[directXDataSize];
-            _marshalDataB = new byte[directXDataSize];
-        }
-        
         if (CheckWindowValidAndUpdateIt())
         {
+            // By this point, we have the window size
+            var rectangle = coordinates.ToRectangle(_bigWindowWidth, _bigWindowHeight);
+            _offsetX = rectangle.X;
+            _offsetY = rectangle.Y;
+            _width = rectangle.Width;
+            _height = rectangle.Height;
+            
+            var monochromaticDataSize = _height * _width;
+            var directXDataSize = _height * _width * 4;
+            if (_monochromaticData == null || _monochromaticData.Length != monochromaticDataSize)
+            {
+                Console.WriteLine("Creating new arrays...");
+                _monochromaticData = new byte[monochromaticDataSize];
+                _monochromaticDataB = new byte[monochromaticDataSize];
+                _marshalData = new byte[directXDataSize];
+                _marshalDataB = new byte[directXDataSize];
+                for (var i = 0; i < _marshalData.Length; i++)
+                {
+                    _marshalData[i] = 255;
+                    _marshalDataB[i] = 255;
+                }
+            }
+            
             Capture();
             return CopyFromGdiToDirectX();
         }
@@ -221,6 +230,10 @@ public class WindowGdiTextureExtractor
                 if (sampleX >= 0 && sampleX < _bigWindowWidth && sampleY >= 0 && sampleY < _bigWindowHeight)
                 {
                     var bigWindowBytesSampleIndex = (sampleY * _bigWindowWidth + sampleX) * NumberOfColorComponents;
+                    if (monochromaticScratchIndex > _monochromaticDataB.Length)
+                    {
+                        Console.WriteLine($"Outside bounds ({monochromaticScratchIndex} of {_monochromaticDataB.Length})");
+                    }
                     
                     _monochromaticDataB[monochromaticScratchIndex] = _bigWindowBytes[bigWindowBytesSampleIndex + 1]; // Sample from green
                     if (IsMinimalMode)

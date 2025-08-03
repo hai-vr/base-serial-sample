@@ -1,4 +1,5 @@
 using System.Numerics;
+using Hai.HView.Data;
 using Hai.PositionSystemToExternalProgram.Core;
 using ImGuiNET;
 using Veldrid;
@@ -17,6 +18,9 @@ public class UiMainApplication
     private const string SubmitLabel = "Submit";
 
     private readonly UiActions _uiActions;
+    private readonly SavedData _config;
+    private readonly UiScrollManager _scrollManager = new UiScrollManager();
+    
     private string[] _portNames;
     private int _selectedPortIndex;
     private string _selectedPortName = "";
@@ -27,9 +31,10 @@ public class UiMainApplication
     private int _lastHeight;
     private IntPtr _textureId;
 
-    public UiMainApplication(UiActions uiActions)
+    public UiMainApplication(UiActions uiActions, SavedData config)
     {
         _uiActions = uiActions;
+        _config = config;
     }
 
     public void Initialize()
@@ -47,6 +52,8 @@ public class UiMainApplication
         DrawMain(controller, window);
         
         ImGui.End();
+        
+        _scrollManager.StoreIfAnyItemHovered();
     }
 
     private void DrawMain(CustomImGuiController controller, Sdl2Window window)
@@ -54,20 +61,6 @@ public class UiMainApplication
         var rawData = _uiActions.ExposeRawData();
         var isSerialOpen = _uiActions.IsSerialOpen();
         var isOpenVrRunning = _uiActions.IsOpenVrRunning();
-
-        if (!isOpenVrRunning)
-        {
-            ImGui.Text("OpenVR is not running.");
-        }
-        
-        ImGui.BeginDisabled(isSerialOpen || _selectedPortName == "");
-        if (ImGui.Button(OpenSerialLabel))
-        {
-            _uiActions.ConnectSerial(_selectedPortName);
-        }
-        ImGui.EndDisabled();
-        
-        ImGui.SameLine();
         
         ImGui.BeginDisabled(isSerialOpen);
         if (ImGui.BeginCombo("##PortCombo", _selectedPortName))
@@ -80,7 +73,7 @@ public class UiMainApplication
                     _selectedPortIndex = i;
                     _selectedPortName = _portNames[i];
                 }
-                
+                    
                 if (isSelected)
                 {
                     ImGui.SetItemDefaultFocus();
@@ -88,43 +81,114 @@ public class UiMainApplication
             }
             ImGui.EndCombo();
         }
-        ImGui.EndDisabled();
-        
-        ImGui.BeginDisabled(!isSerialOpen);
-        if (ImGui.Button(CloseSerialLabel))
+        ImGui.SameLine();
+        if (ImGui.Button("Refresh"))
         {
-            _uiActions.DisconnectSerial();
+            UpdatePortNames();
         }
         ImGui.EndDisabled();
-        
-        ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
-        ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
-        ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);
-        ImGui.SliderInt("R0", ref rawData.R0, 0, 9999);
-        ImGui.SliderInt("R1", ref rawData.R1, 0, 9999);
-        ImGui.SliderInt("R2", ref rawData.R2, 0, 9999);
-        ImGui.Checkbox(AutoUpdateLabel, ref rawData.autoUpdate);
-        
-        ImGui.BeginDisabled(!isSerialOpen || rawData.autoUpdate);
-        if (ImGui.Button(SubmitLabel))
-        {
-            _uiActions.Submit();
-        }
-        ImGui.EndDisabled();
-        
-        var extractedData = _uiActions.ExtractedData();
-        if (extractedData.IsValid())
-        {
-            var textureId = TurnDataIntoTexture(controller, extractedData);
 
-            ImGui.Text($"{extractedData.Iteration}");
-            ImGui.Image(textureId, new Vector2(_lastHeight, _lastHeight));
-            var location = _uiActions.Location();
-            ImGui.SliderInt("X", ref location.X, 0, 2048);
-            ImGui.SliderInt("Y", ref location.Y, 0, 2048);
-            ImGui.SliderInt("W", ref location.W, 0, 1024);
-            ImGui.SliderInt("H", ref location.H, 0, 1024);
-            ImGui.Checkbox("Use right eye", ref location.useRightEye);
+        if (isSerialOpen)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button(CloseSerialLabel))
+            {
+                _uiActions.DisconnectSerial();
+            }
+        }
+        else
+        {
+            ImGui.BeginDisabled(_selectedPortName == "");
+            if (ImGui.Button($"Connect to device on serial port {(_selectedPortName == "" ? "UNKNOWN" : _selectedPortName)}", new Vector2(ImGui.GetContentRegionAvail().X, 60)))
+            {
+                _uiActions.ConnectSerial(_selectedPortName);
+            }
+            ImGui.EndDisabled();
+        }
+        
+        var anyChanged = false;
+        ImGui.BeginTabBar("##tabs");
+        _scrollManager.MakeTab("Extractor", () =>
+        {
+            ImGui.SeparatorText("OpenVR");
+            if (!isOpenVrRunning)
+            {
+                ImGui.Text("OpenVR is not running.");
+                ImGui.SeparatorText("Desktop");
+                anyChanged |= ImGui.SliderInt("Window Offset X", ref _config.offsetX, 0, 100);
+                anyChanged |= ImGui.SliderInt("Window Offset Y", ref _config.offsetY, 0, 1000);
+                anyChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
+            }
+            else
+            {
+                anyChanged |= ImGui.SliderInt("Image Offset X", ref _config.vrOffsetX, 0, 100);
+                anyChanged |= ImGui.SliderInt("Image Offset Y", ref _config.vrOffsetY, 0, 1000);
+                anyChanged |= ImGui.Checkbox("Use right eye", ref _config.vrUseRightEye);
+            }
+            
+            var extractedData = _uiActions.ExtractedData();
+            var bits = _uiActions.Bits();
+
+            ImGui.SeparatorText("Debug");
+            ImGui.Columns(2);
+            for (var row = 0; row < 32; row++)
+            {
+                var numberOfColumns = 32;
+                for (var index = 0; index < numberOfColumns; index++)
+                {
+                    var inx = row * numberOfColumns + index;
+                    var b = inx < bits.Length ? bits[inx] : false;
+                    var xx = b;
+                    ImGui.Text(xx ? "X" : ".");
+                    if (index != numberOfColumns - 1)
+                    {
+                        ImGui.SameLine();
+                    }
+                }
+            }
+            ImGui.NextColumn();
+
+            if (extractedData.IsValid())
+            {
+                var textureId = TurnDataIntoTexture(controller, extractedData);
+
+                ImGui.Text($"{extractedData.Iteration}");
+                ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
+                var location = _uiActions.Location();
+                ImGui.SliderInt("X", ref location.coordinates.x, 0, 2048);
+                ImGui.SliderInt("Y", ref location.coordinates.y, 0, 2048);
+                ImGui.SliderInt("W", ref location.coordinates.requestedWidth, 1, 1024);
+                ImGui.SliderInt("H", ref location.coordinates.requestedHeight, 1, 1024);
+                ImGui.SliderFloat("aX", ref location.coordinates.anchorX, 0, 1f);
+                ImGui.SliderFloat("aY", ref location.coordinates.anchorY, 0, 1f);
+                ImGui.Checkbox("Use right eye", ref location.useRightEye);
+            }
+            
+            ImGui.Columns(1);
+        });
+        _scrollManager.MakeTab("Hardware", () =>
+        {
+            ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
+            ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
+            ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);
+            ImGui.SliderInt("R0", ref rawData.R0, 0, 9999);
+            ImGui.SliderInt("R1", ref rawData.R1, 0, 9999);
+            ImGui.SliderInt("R2", ref rawData.R2, 0, 9999);
+            ImGui.Checkbox(AutoUpdateLabel, ref rawData.autoUpdate);
+            
+            ImGui.BeginDisabled(!isSerialOpen || rawData.autoUpdate);
+            if (ImGui.Button(SubmitLabel))
+            {
+                _uiActions.Submit();
+            }
+            ImGui.EndDisabled();
+        });
+
+        ImGui.EndTabBar();
+        
+        if (anyChanged)
+        {
+            _config.SaveConfig();
         }
     }
 

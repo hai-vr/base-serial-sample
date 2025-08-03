@@ -28,10 +28,11 @@ public class OpenVrExtractor
     private int _texture2DID_W;
     private int _texture2DID_H;
     private int _extractionIteration;
+    private byte[] _scratchMarshalData;
     private byte[] _monochromaticData;
     private byte[] _monochromaticDataB;
-    private byte[] _marshalData;
-    private byte[] _marshalDataB;
+    private byte[] _colorData;
+    private byte[] _colorDataB;
 
     public class EyeResource
     {
@@ -121,7 +122,7 @@ public class OpenVrExtractor
         return true;
     }
     
-    public ExtractionResult Extract(ExtractionSource source, int x, int y, int w, int h)
+    public ExtractionResult Extract(ExtractionSource source, ExtractionCoordinates coordinates)
     {
         var isInitialized = TryInitializeDevice() && TryInitializeOpenVrResources();
         if (!isInitialized)
@@ -131,14 +132,15 @@ public class OpenVrExtractor
                 Success = false
             };
         }
-        
-        var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.
-        var box = new Box(x, y, 0, x + w, y + h, back);
-        
+
         var eyeResource = source == ExtractionSource.RightEye ? _right : _left;
         
-        var captureWidth = box.Width;
-        var captureHeight = box.Height;
+        var rect = coordinates.ToRectangle(eyeResource.desc2d.Width, eyeResource.desc2d.Height);
+        var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.
+        var box = new Box(rect.X, rect.Y, 0, rect.X + rect.Width, rect.Y + rect.Height, back);
+        
+        var captureWidth = ContainWithinPowerOfTwo(box.Width);
+        var captureHeight = ContainWithinPowerOfTwo(box.Height);
         if (_texture2DID == null || _texture2DID_W != captureWidth || _texture2DID_H != captureHeight)
         {
             _texture2DID?.Release();
@@ -162,36 +164,45 @@ public class OpenVrExtractor
         var result = _context.Map(_texture2DID, 0, MapMode.Read, MapFlags.None, out MappedSubresource mappedResource);
         if (result.Success)
         {
-            var desc2dHeight = captureHeight;
-            var desc2dWidth = captureWidth;
-            var marshalDataSize = desc2dHeight * desc2dWidth * 4;
-            var monochromaticDataSize = desc2dHeight * desc2dWidth;
+            var scratchMarshalDataSize = captureHeight * captureWidth * 4;
+            var monochromaticDataSize = rect.Height * rect.Width;
+            var colorDataSize = rect.Height * rect.Width * 4;
             if (_monochromaticData == null || _monochromaticData.Length != monochromaticDataSize)
             {
+                Console.WriteLine("Creating new arrays...");
+                _scratchMarshalData = new byte[scratchMarshalDataSize];
                 _monochromaticData = new byte[monochromaticDataSize];
                 _monochromaticDataB = new byte[monochromaticDataSize];
-                _marshalData = new byte[marshalDataSize];
-                _marshalDataB = new byte[marshalDataSize];
+                _colorData = new byte[colorDataSize];
+                _colorDataB = new byte[colorDataSize];
             }
 
             // We write in B, because A was returned in the last iteration, and the UI thread might be currently reading it.
             // This should give enough time for the UI thread to finish reading the data in A;
             // it's unlikely we're doing two iterations while the UI thread is still reading it.
-            Marshal.Copy(mappedResource.DataPointer, _marshalDataB, 0, _marshalDataB.Length);
-            for (var iMarshal = 0; iMarshal < _marshalData.Length; iMarshal += 4)
+            Marshal.Copy(mappedResource.DataPointer, _scratchMarshalData, 0, _scratchMarshalData.Length);
+            for (var iColor = 0; iColor < _colorDataB.Length; iColor += 4)
             {
-                var iMonochromatic = iMarshal / 4;
-                _monochromaticDataB[iMonochromatic] = _marshalData[iMarshal + 1]; // This is the green channel
+                var iColorX = iColor % (rect.Width * 4);
+                var iColorY = iColor / (rect.Width * 4);
+                var iMarshal = iColorY * (captureWidth * 4) + iColorX;
+                _colorDataB[iColor] = _scratchMarshalData[iMarshal];
+                _colorDataB[iColor + 1] = _scratchMarshalData[iMarshal + 1];
+                _colorDataB[iColor + 2] = _scratchMarshalData[iMarshal + 2];
+                _colorDataB[iColor + 3] = _scratchMarshalData[iMarshal + 3];
                 
-                var isPureBlackPixel = _marshalDataB[iMarshal] == 0 && _marshalDataB[iMarshal + 1] == 0 && _marshalDataB[iMarshal + 2] == 0;
+                var iMonochromatic = iColor / 4;
+                _monochromaticDataB[iMonochromatic] = _colorDataB[iColor + 1]; // This is the green channel
+                
+                var isPureBlackPixel = _colorDataB[iColor] == 0 && _colorDataB[iColor + 1] == 0 && _colorDataB[iColor + 2] == 0;
                 if (isPureBlackPixel)
                 {
-                    _marshalDataB[iMarshal] = 255;
+                    _colorDataB[iColor] = 255;
                 }
-                _marshalDataB[iMarshal + 3] = 255;
+                _colorDataB[iColor + 3] = 255;
             }
             (_monochromaticData, _monochromaticDataB) = (_monochromaticDataB, _monochromaticData);
-            (_marshalData, _marshalDataB) = (_marshalDataB, _marshalData);
+            (_colorData, _colorDataB) = (_colorDataB, _colorData);
             
             _context.Unmap(_texture2DID, 0);
 
@@ -202,10 +213,18 @@ public class OpenVrExtractor
         {
             Success = true,
             MonochromaticData = _monochromaticData,
-            ColorData = _marshalData,
-            Width = captureWidth,
-            Height = captureHeight,
+            ColorData = _colorData,
+            Width = rect.Width,
+            Height = rect.Height,
             Iteration = _extractionIteration
         };
+    }
+
+    private static int ContainWithinPowerOfTwo(int n)
+    {
+        if (n < 1) return 1;
+
+        var power = (int)Math.Ceiling(Math.Log(n, 2));
+        return (int)Math.Pow(2, power);
     }
 }

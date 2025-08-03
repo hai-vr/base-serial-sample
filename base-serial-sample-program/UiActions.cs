@@ -29,6 +29,7 @@ public class UiActions
     public TcodeData ExposeRawData() => _routine.RawSerialData;
     public bool IsOpenVrRunning() => _routine.IsOpenVrRunning;
     public ExtractionResult ExtractedData() => _routine.ExtractedData;
+    public bool[] Bits() => _routine.Bits;
     public ExtractLocation Location() => _routine.Location;
 
     public string[] FetchPortNames()
