@@ -40,7 +40,7 @@ On the program side, we check for a value above 110 (43%), but this may need to 
 
 Adding new lines at the end is considered to be a breaking change, because the checksum changes. 
 
-| Line   | Description                                                                                                                                                       |
+| Group  | Description                                                                                                                                                       |
 |--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **0**  | Checksum. See [checksum](#checksum) section below.                                                                                                                |
 | **1**  | Time since level load, as given by `_Time.y`. Intended to let the decoder know when the data has changed<br>(i.e. for interpolation, or to detect data stalling). |
