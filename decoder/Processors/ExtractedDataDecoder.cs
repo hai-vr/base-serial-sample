@@ -6,14 +6,23 @@ namespace Hai.PositionSystemToExternalProgram.Processors;
 /// Using data lines coming from TextureDataExtractor, decode into light information.
 public class ExtractedDataDecoder
 {
+    private const uint OurVendor = 1366692562;
+    private const uint OurMajorVersionNumber = 1;
+    
     private const int NumberOfBytesInAFloat = 4;
     private const int NumberOfBitsInAFloat = NumberOfBytesInAFloat * 8;
     private const int NumberOfComponentsInAColor = 4;
     private const int NumberOfComponentsInAVector = 3;
         
-    private const int VectorStart = 0;
-    private const int ColorStart = VectorStart + 4 * NumberOfComponentsInAVector;
-    private const int AttenuationStart = ColorStart + 4 * NumberOfComponentsInAColor;
+    private const int Checksum = 0;
+    private const int Time = 1;
+    private const int VendorCheck = 2;
+    private const int VersionSemver = 3;
+    private const int LightPositionStart = 4;
+    private const int LightColorStart = LightPositionStart + 4 * NumberOfComponentsInAVector;
+    private const int LightAttenuationStart = LightColorStart + 4 * NumberOfComponentsInAColor;
+    private const int HmdPositionStart = 36;
+    private const int HmdRotationStart = 40;
 
     private bool[] _data;
 
@@ -29,44 +38,84 @@ public class ExtractedDataDecoder
         return true;
     }
 
-    public void DecodeInto(DecodedLightBundle decodedMutated, bool[] dataLines)
+    public void DecodeInto(DecodedData decodedMutated, bool[] dataLines)
     {
         _data = dataLines;
-            
+        
+        var checksum = SampleUInt32(Checksum);
+        // TODO: Calculate checksum
+        if (false)
+        {
+            decodedMutated.validity = DataValidity.InvalidChecksum;
+            return;
+        }
+
+        var time = SampleFloat(Time);
+        var itIsTheSameTime = Math.Abs(time - decodedMutated.Time) < 0.0001f;
+        if (itIsTheSameTime)
+        {
+            // Skip decoding. Data can only change when the time also changes.
+            return;
+        }
+        decodedMutated.Time = time;
+        
+        var versionCheckValue = SampleUInt32(VendorCheck);
+        if (versionCheckValue != OurVendor)
+        {
+            decodedMutated.validity = DataValidity.UnexpectedVendor;
+            return;
+        }
+        
+        var versionSemverValue = SampleUInt32(VersionSemver);
+        var major = versionSemverValue / 1_000_000;
+        if (major != OurMajorVersionNumber)
+        {
+            // TODO: Expose the version to the decoded data.
+            decodedMutated.validity = DataValidity.UnexpectedMajorVersion;
+            return;
+        }
+        
         for (var index = 0; index < 4; index++)
         {
             var light = decodedMutated.Lights[index];
-            if (ReadVector3StartingFromLine(VectorStart + index * NumberOfComponentsInAVector, out var pos))
-            {
-                light.position = pos;
-                light.positionAvailable = true;
-            }
-            else
-            {
-                light.positionAvailable = false;
-            }
+            DecodeLight(index, light);
+        }
+        
+        decodedMutated.validity = DataValidity.Ok;
+    }
 
-            if (ReadVector4StartingFromLine(ColorStart + index * NumberOfComponentsInAColor, out var color))
-            {
-                light.color = V3(color);
-                light.intensity = color.W;
-                light.enabled = color.W > 0f;
-                light.colorAvailable = true;
-            }
-            else
-            {
-                light.colorAvailable = false;
-            }
+    private void DecodeLight(int index, DecodedLight light)
+    {
+        if (ReadVector3StartingFromLine(LightPositionStart + index * NumberOfComponentsInAVector, out var pos))
+        {
+            light.position = pos;
+            light.positionAvailable = true;
+        }
+        else
+        {
+            light.positionAvailable = false;
+        }
 
-            if (ReadFloatStartingFromLine(AttenuationStart + index, out var attenuation))
-            {
-                light.range = ConvertAttenuationToRangeOrOne(attenuation);
-                light.rangeAvailable = true;
-            }
-            else
-            {
-                light.rangeAvailable = false;
-            }
+        if (ReadVector4StartingFromLine(LightColorStart + index * NumberOfComponentsInAColor, out var color))
+        {
+            light.color = V3(color);
+            light.intensity = color.W;
+            light.enabled = color.W > 0f;
+            light.colorAvailable = true;
+        }
+        else
+        {
+            light.colorAvailable = false;
+        }
+
+        if (ReadFloatStartingFromLine(LightAttenuationStart + index, out var attenuation))
+        {
+            light.range = ConvertAttenuationToRangeOrOne(attenuation);
+            light.rangeAvailable = true;
+        }
+        else
+        {
+            light.rangeAvailable = false;
         }
     }
 
@@ -128,6 +177,18 @@ public class ExtractedDataDecoder
 
     private float SampleFloat(int line)
     {
+        var floatRepresentation = Decode32Bit(line);
+        return BitConverter.ToSingle(BitConverter.GetBytes(floatRepresentation), 0);
+    }
+
+    private uint SampleUInt32(int line)
+    {
+        var floatRepresentation = Decode32Bit(line);
+        return BitConverter.ToUInt32(BitConverter.GetBytes(floatRepresentation), 0);
+    }
+
+    private uint Decode32Bit(int line)
+    {
         var startPos = line * NumberOfBitsInAFloat;
         if (startPos < 0 || _data.Length < startPos + NumberOfBitsInAFloat) throw new ArgumentOutOfRangeException(nameof(line));
         // var dataLine = _data.AsSpan(startPos);
@@ -140,6 +201,6 @@ public class ExtractedDataDecoder
             floatRepresentation |= value << bit;
         }
 
-        return BitConverter.ToSingle(BitConverter.GetBytes(floatRepresentation), 0);
+        return floatRepresentation;
     }
 }

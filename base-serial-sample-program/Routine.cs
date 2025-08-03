@@ -24,7 +24,7 @@ public class Routine
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
     public bool[] Bits { get; private set; }
-    public DecodedLightBundle LightBundle { get; }
+    public DecodedData Data { get; }
     public ExtractionResult ExtractedData { get; private set; }
     public ExtractLocation Location { get; private set; } = new();
 
@@ -46,7 +46,7 @@ public class Routine
         _decoder = decoder;
         
         RawSerialData = new TcodeData();
-        LightBundle = new DecodedLightBundle();
+        Data = new DecodedData();
 
         _ovrStarter.OnExited += () => Enqueue(() =>
         {
@@ -144,7 +144,7 @@ public class Routine
         {
             _lastExtractionIteration = ExtractedData.Iteration;
             Bits = _toBits.ExtractBitsFromSubregion(ExtractedData.MonochromaticData, Location.coordinates.requestedWidth, Location.coordinates.requestedHeight);
-            _decoder.DecodeInto(LightBundle, Bits);
+            _decoder.DecodeInto(Data, Bits);
         }
         
         if (_serial.IsOpen && RawSerialData.autoUpdate)
