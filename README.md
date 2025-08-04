@@ -1,9 +1,10 @@
 ﻿Position System to External Program
 ====
 
-I'm sharing a program with some friends.
+*Position System to External Program* is a **shader** and a **program** that lets you connect the position of standard DPS-like lights
+to a robotic arm.
 
-They can audit the program's contents here.
+Other users may be able to remotely control the position and rotation of your robotic arm through a shared virtual space.
 
 # User documentation
 
