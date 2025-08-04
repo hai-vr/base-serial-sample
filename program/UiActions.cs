@@ -33,7 +33,7 @@ public class UiActions
     public ExtractionResult ExtractedData() => _routine.ExtractedData;
     public bool[] Bits() => _routine.Bits;
     public ExtractionCoordinates VrCoordinates() => _routine.VrCoordinates;
-    public ExtractionCoordinates DesktopCoordinates() => _routine.DesktopCoordinates;
+    public ExtractionCoordinates WindowCoordinates() => _routine.WindowCoordinates;
     public DecodedData Data() => _routine.Data;
     public InterpretedLightData InterpretedData() => _routine.InterpretedData;
 

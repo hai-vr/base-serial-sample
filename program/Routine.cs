@@ -26,7 +26,7 @@ public class Routine
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
-    public ExtractionCoordinates DesktopCoordinates { get; private set; } = new();
+    public ExtractionCoordinates WindowCoordinates { get; private set; } = new();
     public ExtractionCoordinates VrCoordinates { get; private set; } = new();
     public ExtractionResult ExtractedData { get; private set; }
     public bool[] Bits { get; private set; }
@@ -35,7 +35,7 @@ public class Routine
     
     public void RefreshConfiguration()
     {
-        CopyCoordinates(_config.desktopCoordinates, DesktopCoordinates);
+        CopyCoordinates(_config.windowCoordinates, WindowCoordinates);
         CopyCoordinates(_config.vrCoordinates, VrCoordinates);
         
         _windowGdiExtractor.desiredWindowName = _config.windowName;
@@ -152,7 +152,7 @@ public class Routine
 
         // We do the check again, as PollVrEvents may have shut OpenVR down.
         var isUsingVrExtractor = IsUsingVrExtractor();
-        var coordinates = isUsingVrExtractor ? VrCoordinates : DesktopCoordinates;
+        var coordinates = isUsingVrExtractor ? VrCoordinates : WindowCoordinates;
         if (isUsingVrExtractor)
         {
             var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
@@ -174,7 +174,7 @@ public class Routine
             var MARGIN = 1;
             coordinates.requestedWidth = (int)((_layout.numberOfColumns + MARGIN * 2) * _layout.EncodedSquareSize);
             coordinates.requestedHeight = (int)((_layout.numberOfDataLines + MARGIN * 2) * _layout.EncodedSquareSize);
-            var result = _windowGdiExtractor.Extract(DesktopCoordinates);
+            var result = _windowGdiExtractor.Extract(WindowCoordinates);
             if (result.Success)
             {
                 ExtractedData = result;

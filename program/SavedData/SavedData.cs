@@ -34,16 +34,16 @@ public class SavedData
 
     public ExtractorConfig extractorPreference = ExtractorConfig.PrioritizeVR;
 
-    public ConfigCoord desktopCoordinates = new ConfigCoord();
+    public ConfigCoord windowCoordinates = new ConfigCoord();
     public ConfigCoord vrCoordinates = new ConfigCoord();
     public bool vrUseRightEye = false;
 
-    public void SetDesktopCoordinatesToDefault()
+    public void SetWindowCoordinatesToDefault()
     {
-        desktopCoordinates.x = 8;
-        desktopCoordinates.y = 31;
-        desktopCoordinates.anchorX = 0f;
-        desktopCoordinates.anchorY = 0f;
+        windowCoordinates.x = 8;
+        windowCoordinates.y = 31;
+        windowCoordinates.anchorX = 0f;
+        windowCoordinates.anchorY = 0f;
     }
 
     public void SetVrCoordinatesToDefault()
@@ -51,13 +51,13 @@ public class SavedData
         vrCoordinates.x = 0;
         vrCoordinates.y = 0;
         vrCoordinates.anchorX = 0f;
-        vrCoordinates.anchorY = 0.5f;
+        vrCoordinates.anchorY = 0.499f;
         vrUseRightEye = false;
     }
 
     public SavedData()
     {
-        SetDesktopCoordinatesToDefault();
+        SetWindowCoordinatesToDefault();
         SetVrCoordinatesToDefault();
     }
 

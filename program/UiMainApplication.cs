@@ -135,16 +135,16 @@ public class UiMainApplication
                     ImGui.SeparatorText("OpenVR");
                     ImGui.Text("OpenVR is not running.");
                 }
-                ImGui.SeparatorText("Desktop");
-                anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset X", ref _config.desktopCoordinates.x, 0, 100);
-                anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset Y", ref _config.desktopCoordinates.y, 0, 1000);
-                anyCoordinateChanged |= ImGui.SliderFloat("Desktop Anchor X", ref _config.desktopCoordinates.anchorX, 0f, 1f);
-                anyCoordinateChanged |= ImGui.SliderFloat("Desktop Anchor Y", ref _config.desktopCoordinates.anchorY, 0f, 1f);
+                ImGui.SeparatorText("Window");
+                anyCoordinateChanged |= ImGui.SliderInt("Window Offset X", ref _config.windowCoordinates.x, 0, 100);
+                anyCoordinateChanged |= ImGui.SliderInt("Window Offset Y", ref _config.windowCoordinates.y, 0, 1000);
+                anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor X", ref _config.windowCoordinates.anchorX, 0f, 1f);
+                anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor Y", ref _config.windowCoordinates.anchorY, 0f, 1f);
                 anyCoordinateChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
                 if (ImGui.Button("Reset to defaults (except Window name)"))
                 {
                     anyCoordinateChanged = true;
-                    _config.SetDesktopCoordinatesToDefault();
+                    _config.SetWindowCoordinatesToDefault();
                 }
             }
             else
@@ -187,7 +187,7 @@ public class UiMainApplication
 
                 ImGui.Text($"{extractedData.Iteration}");
                 ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
-                var coordinates = _uiActions.IsUsingVrExtractor() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
+                var coordinates = _uiActions.IsUsingVrExtractor() ? _uiActions.VrCoordinates() : _uiActions.WindowCoordinates();
                 ImGui.Text($"{coordinates.requestedWidth} x {coordinates.requestedHeight}");
             }
             
