@@ -34,6 +34,7 @@ public class UiActions
     public ExtractionCoordinates VrCoordinates() => _routine.VrCoordinates;
     public ExtractionCoordinates DesktopCoordinates() => _routine.DesktopCoordinates;
     public DecodedData Data() => _routine.Data;
+    public InterpretedLightData InterpretedData() => _routine.InterpretedData;
 
     public string[] FetchPortNames()
     {

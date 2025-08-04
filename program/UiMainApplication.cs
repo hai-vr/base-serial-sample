@@ -152,6 +152,7 @@ public class UiMainApplication
             var extractedData = _uiActions.ExtractedData();
             if (extractedData.IsValid())
             {
+                var interpreted = _uiActions.InterpretedData();
                 ImGui.SeparatorText("Debug");
                 ImGui.Columns(2);
                 DrawSieve(16);
@@ -163,17 +164,51 @@ public class UiMainApplication
                 ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
                 var coordinates = _uiActions.IsOpenVrRunning() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
                 ImGui.Text($"{coordinates.requestedWidth} x {coordinates.requestedHeight}");
+                
+                ImGui.SeparatorText("Interpreted data");
+                InterpretedDebug(interpreted);
             }
             
             ImGui.Columns(1);
         });
-        _scrollManager.MakeTab("Data", () =>
+        _scrollManager.MakeTab("Debug", () =>
         {
-            var extractedData = _uiActions.ExtractedData();
-            if (extractedData.IsValid())
+            ImGui.BeginTabBar("##tabs_debug");
+            _scrollManager.MakeTab("Lights", () =>
             {
-                DrawSieve(32);
-            }
+                var data = _uiActions.Data();
+                var interpreted = _uiActions.InterpretedData();
+                var valid = data.validity == DataValidity.Ok;
+        
+                ShowDataWarningIfApplicable(data);
+                
+                if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+                for (var index = 0; index < data.Lights.Length; index++)
+                {
+                    var decodedLight = data.Lights[index];
+                    ImGui.SeparatorText($"Light #{index + 1}");
+                    ImGui.BeginDisabled(!decodedLight.enabled);
+                    ImGui.Text($"Enabled: {BoolToString(decodedLight.enabled)}");
+                    ImGui.Text($"Range: {decodedLight.range}");
+                    ImGui.Text($"Color: {decodedLight.color.X} {decodedLight.color.Y} {decodedLight.color.Z}");
+                    ImGui.Text($"Intensity: {decodedLight.intensity}");
+                    ImGui.Text($"Position: {decodedLight.position.X} {decodedLight.position.Y} {decodedLight.position.Z}");
+                    ImGui.EndDisabled();
+                }
+                if (!valid) ImGui.PopStyleColor();
+                
+                ImGui.SeparatorText("Interpreted data");
+                InterpretedDebug(interpreted);
+            });
+            _scrollManager.MakeTab("Data", () =>
+            {
+                var extractedData = _uiActions.ExtractedData();
+                if (extractedData.IsValid())
+                {
+                    DrawSieve(32);
+                }
+            });
+            ImGui.EndTabBar();
         });
         _scrollManager.MakeTab("Hardware", () =>
         {
@@ -201,32 +236,29 @@ public class UiMainApplication
         }
     }
 
+    private static void InterpretedDebug(InterpretedLightData interpreted)
+    {
+        ImGui.Text($"HasTarget: {BoolToString(interpreted.hasTarget)}");
+        ImGui.Text($"HasNormal: {BoolToString(interpreted.hasNormal)}");
+        var interpretedType = interpreted.isHole ? "hole" : interpreted.isRing ? "ring" : "undefined";
+        ImGui.Text($"Type: {interpretedType}");
+        ImGui.Text($"Position: {interpreted.position.X} {interpreted.position.Y} {interpreted.position.Z}");
+        ImGui.Text($"Normal: {interpreted.normal.X} {interpreted.normal.Y} {interpreted.normal.Z}");
+    }
+
+    private static string BoolToString(bool b)
+    {
+        return b ? "true" : "false";
+    }
+
     private void DrawSieve(int numberOfColumns)
     {
         var bits = _uiActions.Bits();
         var data = _uiActions.Data();
         var valid = data.validity == DataValidity.Ok;
         
-        if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
-        switch (data.validity)
-        {
-            case DataValidity.Ok:
-                ImGui.Text("Data is OK");
-                break;
-            case DataValidity.InvalidChecksum:
-                ImGui.Text("Checksum is failing");
-                break;
-            case DataValidity.UnexpectedVendor:
-                ImGui.Text("Unexpected vendor");
-                break;
-            case DataValidity.UnexpectedMajorVersion:
-                ImGui.Text("Unexpected major version");
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
-        if (!valid) ImGui.PopStyleColor();
-                
+        ShowDataWarningIfApplicable(data);
+
         if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
         
         var numberOfLines = PositionSystemDataLayout.CalculateNumberOfLines(numberOfColumns);
@@ -253,6 +285,30 @@ public class UiMainApplication
                 ImGui.SameLine();
                 ImGui.Text("  ->   " + Enum.GetName(typeof(ShaderV1_0_0), (ShaderV1_0_0)row));
             }
+        }
+        if (!valid) ImGui.PopStyleColor();
+    }
+
+    private static void ShowDataWarningIfApplicable(DecodedData data)
+    {
+        var valid = data.validity == DataValidity.Ok;
+        if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+        switch (data.validity)
+        {
+            case DataValidity.Ok:
+                ImGui.Text("Data is OK");
+                break;
+            case DataValidity.InvalidChecksum:
+                ImGui.Text("Checksum is failing");
+                break;
+            case DataValidity.UnexpectedVendor:
+                ImGui.Text("Unexpected vendor");
+                break;
+            case DataValidity.UnexpectedMajorVersion:
+                ImGui.Text("Unexpected major version");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
         }
         if (!valid) ImGui.PopStyleColor();
     }

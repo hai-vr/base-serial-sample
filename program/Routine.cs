@@ -22,14 +22,16 @@ public class Routine
     private readonly OversizedToBitsTransformer _toBits;
     private readonly ExtractedDataDecoder _decoder;
     private readonly PositionSystemDataLayout _layout;
+    private readonly DpsLightInterpreter _interpreter;
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
-    public bool[] Bits { get; private set; }
-    public DecodedData Data { get; }
-    public ExtractionResult ExtractedData { get; private set; }
     public ExtractionCoordinates DesktopCoordinates { get; private set; } = new();
     public ExtractionCoordinates VrCoordinates { get; private set; } = new();
+    public ExtractionResult ExtractedData { get; private set; }
+    public bool[] Bits { get; private set; }
+    public DecodedData Data { get; }
+    public InterpretedLightData InterpretedData { get; private set; }
     
     public void RefreshConfiguration()
     {
@@ -62,7 +64,8 @@ public class Routine
         SavedData config,
         OversizedToBitsTransformer toBits,
         ExtractedDataDecoder decoder,
-        PositionSystemDataLayout layout)
+        PositionSystemDataLayout layout,
+        DpsLightInterpreter interpreter)
     {
         _serial = serial;
         _ovrStarter = ovrStarter;
@@ -72,6 +75,7 @@ public class Routine
         _toBits = toBits;
         _decoder = decoder;
         _layout = layout;
+        _interpreter = interpreter;
 
         RawSerialData = new TcodeData();
         Data = new DecodedData();
@@ -181,6 +185,11 @@ public class Routine
             _lastExtractionIteration = ExtractedData.Iteration;
             Bits = _toBits.ExtractBitsFromSubregion(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
             _decoder.DecodeInto(Data, Bits);
+
+            if (Data.validity == DataValidity.Ok)
+            {
+                InterpretedData = _interpreter.Interpret(Data);
+            }
         }
         
         if (_serial.IsOpen && RawSerialData.autoUpdate)

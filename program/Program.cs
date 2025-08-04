@@ -33,7 +33,8 @@ internal class MainApp
         var layout = new PositionSystemDataLayout();
         var toBits = new OversizedToBitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
-        _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder, layout);
+        var interpreter = new DpsLightInterpreter();
+        _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder, layout, interpreter);
         
         _uiMain = new UiMainApplication(new UiActions(_routine), config);
         
