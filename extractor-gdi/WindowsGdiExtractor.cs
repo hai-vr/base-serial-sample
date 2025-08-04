@@ -68,7 +68,6 @@ public class WindowGdiExtractor
         // This can take a long time, like 350ms
         var wnds = WindowNameBiz.FindWindowsWithText(windowName =>
         {
-            Console.WriteLine($"{windowName.ToLowerInvariant()} VS {desiredWindowName.ToLowerInvariant()} :: {windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant())}");
             return windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant());
         }).ToList();
         Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to enumerate windows");
