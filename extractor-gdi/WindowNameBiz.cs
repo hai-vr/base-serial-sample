@@ -49,7 +49,7 @@ public static class WindowNameBiz
         return results;
     }
 
-    private static string GetWindowText(IntPtr hWnd)
+    public static string GetWindowText(IntPtr hWnd)
     {
         var size =  (int)SendMessage(hWnd, WM_GETTEXTLENGTH, 0, 0);
         if (size <= 0) return "";

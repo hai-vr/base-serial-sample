@@ -66,16 +66,26 @@ public class WindowGdiExtractor
         
         var sw = Stopwatch.StartNew();
         // This can take a long time, like 350ms
-        var wnds = WindowNameBiz.FindWindowsWithText(windowName =>
-        {
-            return windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant());
-        }).ToList();
+        var wnds = WindowNameBiz.FindWindowsWithText(_ => true)
+            .Select(intPtr => (WindowNameBiz.GetWindowText(intPtr), intPtr))
+            .Where(tuple =>
+            {
+                var (windowName, _) = tuple;
+                return windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant());
+            })
+            .ToList();
+        
         Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to enumerate windows");
         
         if (wnds.Count == 0) return;
         Console.WriteLine($"Found {wnds.Count} windows");
-        
-        _widnowHandle_hwnd = wnds[0];
+
+        bool WindowNameMatchesExactly((string windowName, IntPtr intPtr) tuple)
+        {
+            return tuple.windowName.ToLowerInvariant() == desiredWindowName.ToLowerInvariant();
+        }
+
+        _widnowHandle_hwnd = wnds.Any(WindowNameMatchesExactly) ? wnds.First(WindowNameMatchesExactly).intPtr : wnds.First().intPtr;
         if (_widnowHandle_hwnd != (IntPtr)0)
         {
             GDIBiz.EnumChildWindows(_widnowHandle_hwnd, (hwnd, lparam) =>
