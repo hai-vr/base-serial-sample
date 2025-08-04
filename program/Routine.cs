@@ -12,7 +12,7 @@ namespace Hai.PositionSystemToExternalProgram.Program;
 
 public class Routine
 {
-    private const int ViveProEyeVerticalResolution = 1600;
+    private const int ViveProEyeVerticalBase = 3360;
     
     private readonly TcodeSerial _serial;
     private readonly OpenVrStarter _ovrStarter;
@@ -150,7 +150,7 @@ public class Routine
         var coordinates = IsOpenVrRunning ? VrCoordinates : DesktopCoordinates;
         if (IsOpenVrRunning)
         {
-            var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalResolution);
+            var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
             // var scale = 1600 / 1000f;
             
             // FIXME: Move margin to data layout
