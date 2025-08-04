@@ -1,11 +1,10 @@
 ﻿using System.Diagnostics;
-using Hai.BaseSerial.SampleProgram;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-namespace Hai.PositionSystemToExternalProgram.ExampleApp;
+namespace Hai.PositionSystemToExternalProgram.Program;
 
 public class HVWindowRendering
 {

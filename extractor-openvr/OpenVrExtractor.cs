@@ -1,6 +1,5 @@
 ﻿using System.Runtime.InteropServices;
 using Hai.PositionSystemToExternalProgram.Core;
-using Hai.PositionSystemToExternalProgram.Extractor.OVR;
 using SharpGen.Runtime;
 using Valve.VR;
 using Vortice.Direct3D;

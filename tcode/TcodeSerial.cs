@@ -1,7 +1,7 @@
 ﻿using System.IO.Ports;
 using System.Numerics;
 
-namespace Hai.PositionSystemToExternalProgram.ExampleApp.Serial;
+namespace Hai.PositionSystemToExternalProgram.Tcode;
 
 public class TcodeSerial
 {

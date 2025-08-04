@@ -1,12 +1,12 @@
 using System.Numerics;
-using Hai.HView.Data;
+using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Processors;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
 
-namespace Hai.BaseSerial.SampleProgram;
+namespace Hai.PositionSystemToExternalProgram.Program;
 
 public class UiMainApplication
 {

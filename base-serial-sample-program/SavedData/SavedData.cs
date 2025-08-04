@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Newtonsoft.Json;
 
-namespace Hai.HView.Data;
+namespace Hai.PositionSystemToExternalProgram.Configuration;
 
 [Serializable]
 public class ConfigCoord

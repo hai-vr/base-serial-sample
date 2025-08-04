@@ -1,6 +1,6 @@
 using Hai.PositionSystemToExternalProgram.Core;
 
-namespace Hai.BaseSerial.SampleProgram;
+namespace Hai.PositionSystemToExternalProgram.Program;
 
 public class UiActions
 {

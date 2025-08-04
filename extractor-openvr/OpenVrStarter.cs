@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Valve.VR;
 
-namespace Hai.PositionSystemToExternalProgram.Extractor.OVR;
+namespace Hai.PositionSystemToExternalProgram.Extractors.OVR;
 
 public class OpenVrStarter
 {

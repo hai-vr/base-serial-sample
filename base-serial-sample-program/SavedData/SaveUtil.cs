@@ -1,4 +1,4 @@
-﻿namespace Hai.HView.Data;
+﻿namespace Hai.PositionSystemToExternalProgram.Configuration;
 
 public static class SaveUtil
 {
