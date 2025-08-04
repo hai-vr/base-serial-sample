@@ -41,7 +41,6 @@ jobs:
         shell: bash
         run: |
           export ASSEMBLY_VERSION=${{ steps.version.outputs.prop }}
-#          dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "Packages/${{env.packageName}}/${{env.outputAppFolder}}"
           dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "App/${{env.outputAppFolder}}"
 
       - name: Create Zip
