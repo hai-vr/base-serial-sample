@@ -28,6 +28,7 @@ public class ExtractedDataDecoder
     private const uint Crc32Polynomial = 0xEDB88320u;
 
     private bool[] _data;
+    private DataValidity _lastChesksumPassingValidity;
 
     public void DecodeInto(DecodedData decodedMutated, bool[] dataLines)
     {
@@ -47,6 +48,9 @@ public class ExtractedDataDecoder
         var itIsTheSameTime = Math.Abs(time - decodedMutated.Time) < 0.0001f;
         if (itIsTheSameTime)
         {
+            // We reapply the last validity that is not a checksum, because if we had a valid data, followed by invalid data,
+            // followed by valid data that was the same as previously, we want it to be marked as valid.
+            decodedMutated.validity = _lastChesksumPassingValidity;
             // Skip decoding. Data can only change when the time also changes.
             return;
         }
@@ -56,6 +60,7 @@ public class ExtractedDataDecoder
         if (versionCheckValue != OurVendor)
         {
             decodedMutated.validity = DataValidity.UnexpectedVendor;
+            _lastChesksumPassingValidity = DataValidity.UnexpectedVendor;
             return;
         }
         
@@ -65,6 +70,7 @@ public class ExtractedDataDecoder
         {
             // TODO: Expose the version to the decoded data.
             decodedMutated.validity = DataValidity.UnexpectedMajorVersion;
+            _lastChesksumPassingValidity = DataValidity.UnexpectedMajorVersion;
             return;
         }
         
@@ -75,6 +81,7 @@ public class ExtractedDataDecoder
         }
         
         decodedMutated.validity = DataValidity.Ok;
+        _lastChesksumPassingValidity = DataValidity.Ok;
     }
 
     private uint CalculateChecksum()
