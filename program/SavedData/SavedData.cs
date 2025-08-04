@@ -32,6 +32,8 @@ public class SavedData
     public float rotationMultiplierL2 = 1f;
     public string windowName = "VR";
 
+    public ExtractorConfig extractorPreference = ExtractorConfig.PrioritizeVR;
+
     public ConfigCoord desktopCoordinates = new ConfigCoord();
     public ConfigCoord vrCoordinates = new ConfigCoord();
     public bool vrUseRightEye = false;

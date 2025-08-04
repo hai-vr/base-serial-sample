@@ -31,11 +31,13 @@ public class UiMainApplication
     private int _lastWidth;
     private int _lastHeight;
     private IntPtr _textureId;
+    private readonly string[] _extractorNames;
 
     public UiMainApplication(UiActions uiActions, SavedData config)
     {
         _uiActions = uiActions;
         _config = config;
+        _extractorNames = Enum.GetNames<ExtractorConfig>();
     }
 
     public void Initialize()
@@ -111,11 +113,28 @@ public class UiMainApplication
         ImGui.BeginTabBar("##tabs");
         _scrollManager.MakeTab("Extractor", () =>
         {
-            ImGui.SeparatorText("OpenVR");
-            var anyCoordinateChanged = false;
-            if (!isOpenVrRunning)
+            ImGui.SeparatorText("Extractor Preference");
+            var currentExtractor = (int)_config.extractorPreference;
+            if (ImGui.Combo("Mode", ref currentExtractor, _extractorNames, _extractorNames.Length))
             {
-                ImGui.Text("OpenVR is not running.");
+                _config.extractorPreference = (ExtractorConfig)currentExtractor;
+                anyChanged = true;
+            }
+
+            if (_config.extractorPreference is ExtractorConfig.PrioritizeSpout or ExtractorConfig.UseSpoutIfVRRunning)
+            {
+                ImGui.SeparatorText("Spout");
+                ImGui.Text("Spout is not yet available in this version of the software.");
+            }
+            
+            var anyCoordinateChanged = false;
+            if (!_uiActions.IsUsingVrExtractor())
+            {
+                if (_config.extractorPreference == ExtractorConfig.PrioritizeVR && !isOpenVrRunning)
+                {
+                    ImGui.SeparatorText("OpenVR");
+                    ImGui.Text("OpenVR is not running.");
+                }
                 ImGui.SeparatorText("Desktop");
                 anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset X", ref _config.desktopCoordinates.x, 0, 100);
                 anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset Y", ref _config.desktopCoordinates.y, 0, 1000);
@@ -130,6 +149,7 @@ public class UiMainApplication
             }
             else
             {
+                ImGui.SeparatorText("OpenVR");
                 anyCoordinateChanged |= ImGui.SliderInt("VR Offset X", ref _config.vrCoordinates.x, 0, 100);
                 anyCoordinateChanged |= ImGui.SliderInt("VR Offset Y", ref _config.vrCoordinates.y, 0, 1000);
                 anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor X", ref _config.vrCoordinates.anchorX, 0f, 1f);
@@ -155,6 +175,11 @@ public class UiMainApplication
                 var interpreted = _uiActions.InterpretedData();
                 ImGui.SeparatorText("Debug");
                 ImGui.Columns(2);
+                
+                ImGui.SeparatorText("Interpreted data");
+                InterpretedDebug(interpreted);
+                
+                ImGui.SeparatorText("Data");
                 DrawSieve(16);
                 ImGui.NextColumn();
 
@@ -162,11 +187,8 @@ public class UiMainApplication
 
                 ImGui.Text($"{extractedData.Iteration}");
                 ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
-                var coordinates = _uiActions.IsOpenVrRunning() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
+                var coordinates = _uiActions.IsUsingVrExtractor() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
                 ImGui.Text($"{coordinates.requestedWidth} x {coordinates.requestedHeight}");
-                
-                ImGui.SeparatorText("Interpreted data");
-                InterpretedDebug(interpreted);
             }
             
             ImGui.Columns(1);

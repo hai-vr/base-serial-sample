@@ -151,8 +151,9 @@ public class Routine
         }
 
         // We do the check again, as PollVrEvents may have shut OpenVR down.
-        var coordinates = IsOpenVrRunning ? VrCoordinates : DesktopCoordinates;
-        if (IsOpenVrRunning)
+        var isUsingVrExtractor = IsUsingVrExtractor();
+        var coordinates = isUsingVrExtractor ? VrCoordinates : DesktopCoordinates;
+        if (isUsingVrExtractor)
         {
             var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
             // var scale = 1600 / 1000f;
@@ -203,6 +204,11 @@ public class Routine
         {
             Thread.Sleep((int)(10 - elapsedTime));
         }
+    }
+
+    public bool IsUsingVrExtractor()
+    {
+        return _config.extractorPreference == ExtractorConfig.PrioritizeVR && IsOpenVrRunning;
     }
 
     public void Submit()

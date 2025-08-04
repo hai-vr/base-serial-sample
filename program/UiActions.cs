@@ -29,6 +29,7 @@ public class UiActions
 
     public TcodeData ExposeRawData() => _routine.RawSerialData;
     public bool IsOpenVrRunning() => _routine.IsOpenVrRunning;
+    public bool IsUsingVrExtractor() => _routine.IsUsingVrExtractor();
     public ExtractionResult ExtractedData() => _routine.ExtractedData;
     public bool[] Bits() => _routine.Bits;
     public ExtractionCoordinates VrCoordinates() => _routine.VrCoordinates;
