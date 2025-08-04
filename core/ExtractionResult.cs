@@ -12,6 +12,6 @@ public struct ExtractionResult
 
     public bool IsValid()
     {
-        return Width > 0 && Height > 0;
+        return Success && Width > 0 && Height > 0;
     }
 }
