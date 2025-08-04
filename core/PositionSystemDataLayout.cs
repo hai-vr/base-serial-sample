@@ -7,7 +7,12 @@ public class PositionSystemDataLayout
     
     public readonly int EncodedSquareSize = 4;
     public readonly int numberOfColumns = SERIALIZE_NumberOfColumns;
-    public readonly int numberOfDataLines = (int)Math.Ceiling((GroupLength * 32.0) / SERIALIZE_NumberOfColumns);
+    public readonly int numberOfDataLines = CalculateNumberOfLines(SERIALIZE_NumberOfColumns);
+
+    public static int CalculateNumberOfLines(int numberOfColumns)
+    {
+        return (int)Math.Ceiling((GroupLength * 32.0) / numberOfColumns);
+    }
 
     public int PowerOfTwoAcquisitionTextureHeight => ContainWithinPowerOfTwo(numberOfDataLines);
     public int PowerOfTwoAcquisitionTextureWidth => ContainWithinPowerOfTwo(numberOfColumns);

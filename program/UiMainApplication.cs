@@ -152,51 +152,9 @@ public class UiMainApplication
             var extractedData = _uiActions.ExtractedData();
             if (extractedData.IsValid())
             {
-                var bits = _uiActions.Bits();
-                var data = _uiActions.Data();
-                var valid = data.validity == DataValidity.Ok;
-
                 ImGui.SeparatorText("Debug");
                 ImGui.Columns(2);
-                if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
-                switch (data.validity)
-                {
-                    case DataValidity.Ok:
-                        ImGui.Text("Data is OK");
-                        break;
-                    case DataValidity.InvalidChecksum:
-                        ImGui.Text("Checksum is failing");
-                        break;
-                    case DataValidity.UnexpectedVendor:
-                        ImGui.Text("Unexpected vendor");
-                        break;
-                    case DataValidity.UnexpectedMajorVersion:
-                        ImGui.Text("Unexpected major version");
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-                if (!valid) ImGui.PopStyleColor();
-                
-                if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
-                var numberOfColumns = 16;
-                for (var row = 0; row < ExtractedDataDecoder.GroupLength; row++)
-                {
-                    ImGui.Text($"#{row:00}  ");
-                    ImGui.SameLine();
-                    for (var index = 0; index < numberOfColumns; index++)
-                    {
-                        var inx = row * numberOfColumns + index;
-                        var b = inx < bits.Length ? bits[inx] : false;
-                        var xx = b;
-                        ImGui.Text(xx ? "X" : ".");
-                        if (index != numberOfColumns - 1)
-                        {
-                            ImGui.SameLine();
-                        }
-                    }
-                }
-                if (!valid) ImGui.PopStyleColor();
+                DrawSieve(16);
                 ImGui.NextColumn();
 
                 var textureId = TurnDataIntoTexture(controller, extractedData);
@@ -204,18 +162,18 @@ public class UiMainApplication
                 ImGui.Text($"{extractedData.Iteration}");
                 ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
                 var coordinates = _uiActions.IsOpenVrRunning() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
-                
-                // FIXME: Not thread safe, these requests need to be enqueued
-                ImGui.SliderInt("W", ref coordinates.requestedWidth, 1, 1024);
-                ImGui.SliderInt("H", ref coordinates.requestedHeight, 1, 1024);
-                if (ImGui.Button("Reset to defaults##size"))
-                {
-                    coordinates.requestedWidth = 32 * 4;
-                    coordinates.requestedHeight = 64 * 4;
-                }
+                ImGui.Text($"{coordinates.requestedWidth} x {coordinates.requestedHeight}");
             }
             
             ImGui.Columns(1);
+        });
+        _scrollManager.MakeTab("Data", () =>
+        {
+            var extractedData = _uiActions.ExtractedData();
+            if (extractedData.IsValid())
+            {
+                DrawSieve(32);
+            }
         });
         _scrollManager.MakeTab("Hardware", () =>
         {
@@ -241,6 +199,62 @@ public class UiMainApplication
         {
             _config.SaveConfig();
         }
+    }
+
+    private void DrawSieve(int numberOfColumns)
+    {
+        var bits = _uiActions.Bits();
+        var data = _uiActions.Data();
+        var valid = data.validity == DataValidity.Ok;
+        
+        if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+        switch (data.validity)
+        {
+            case DataValidity.Ok:
+                ImGui.Text("Data is OK");
+                break;
+            case DataValidity.InvalidChecksum:
+                ImGui.Text("Checksum is failing");
+                break;
+            case DataValidity.UnexpectedVendor:
+                ImGui.Text("Unexpected vendor");
+                break;
+            case DataValidity.UnexpectedMajorVersion:
+                ImGui.Text("Unexpected major version");
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        if (!valid) ImGui.PopStyleColor();
+                
+        if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
+        
+        var numberOfLines = PositionSystemDataLayout.CalculateNumberOfLines(numberOfColumns);
+        var digitCount = (int)Math.Floor(Math.Log10(numberOfLines)) + 1;
+        var format = new string('0', digitCount);
+        
+        for (var row = 0; row < numberOfLines; row++)
+        {
+            ImGui.Text($"#{row.ToString(format)}  ");
+            ImGui.SameLine();
+            for (var index = 0; index < numberOfColumns; index++)
+            {
+                var inx = row * numberOfColumns + index;
+                var b = inx < bits.Length ? bits[inx] : false;
+                var xx = b;
+                ImGui.Text(xx ? "X" : ".");
+                if (index != numberOfColumns - 1)
+                {
+                    ImGui.SameLine();
+                }
+            }
+            if (numberOfLines == ExtractedDataDecoder.GroupLength)
+            {
+                ImGui.SameLine();
+                ImGui.Text("  ->   " + Enum.GetName(typeof(ShaderV1_0_0), (ShaderV1_0_0)row));
+            }
+        }
+        if (!valid) ImGui.PopStyleColor();
     }
 
     private IntPtr TurnDataIntoTexture(CustomImGuiController controller, ExtractionResult extractedData)
