@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 env:
-  outputAppFolder: "BaseSerialSampleProgram~" ## The tilde at the end is so that Unity doesn't scan the folder to create .meta files
-  netProject: "base-serial-sample-program"
-  netCsProj: "base-serial-sample-program/base-serial-sample-program.csproj"
-  packageName: "dev.hai-vr.app.base-serial-sample-program"
+  outputAppFolder: "PositionSystemToExternalProgram~" ## The tilde at the end is so that Unity doesn't scan the folder to create .meta files
+  netProject: "program"
+  netCsProj: "program/program.csproj"
+  packageName: "dev.hai-vr.alleyway.position-system-to-external-program"
 
 permissions:
   contents: write
@@ -41,7 +41,8 @@ jobs:
         shell: bash
         run: |
           export ASSEMBLY_VERSION=${{ steps.version.outputs.prop }}
-          dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "Packages/${{env.packageName}}/${{env.outputAppFolder}}"
+#          dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "Packages/${{env.packageName}}/${{env.outputAppFolder}}"
+          dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "App/${{env.outputAppFolder}}"
 
       - name: Create Zip
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
@@ -50,6 +51,13 @@ jobs:
           directory: "Packages/${{env.packageName}}/"
           filename: "../../${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip" # make the zip file two directories up, since we start two directories in above
 
+      - name: Create Zip (App)
+        uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
+        with:
+          type: "zip"
+          directory: "App/"
+          filename: "../${{ env.packageName }}-${{ steps.version.outputs.prop }}-executable.zip"
+
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
         with:
@@ -57,3 +65,4 @@ jobs:
           files: |
             ${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip
             Packages/${{ env.packageName }}/package.json
+            ${{ env.packageName }}-${{ steps.version.outputs.prop }}-executable.zip
