@@ -21,27 +21,36 @@ namespace Hai.PositionSystemToExternalProgram.Processors
             _shiftX = dataLayout.EncodedSquareSize / 2;
             _shiftY = dataLayout.EncodedSquareSize / 2;
 
-            _data = new bool[_dataLayout.numberOfDataLines * _dataLayout.numberOfColumns];
+            _data = new bool[ExtractedDataDecoder.GroupLength * 32];
         }
 
         public bool[] ExtractBitsFromSubregion(byte[] monochromaticBytes, int width, int height)
         {
-            var xxStart = _shiftX;
-            var yyStart = _shiftY;
-
             for (var i = 0; i < _data.Length; i++)
             {
                 var column = i % _dataLayout.numberOfColumns;
                 var line = i / _dataLayout.numberOfColumns;
 
-                var x = xxStart + column * _dataLayout.EncodedSquareSize;
-                var y = yyStart + line * _dataLayout.EncodedSquareSize;
+                // FIXME: Move margin to data layout
+                int MARGIN = 1;
+                var ww = width / ((float)_dataLayout.numberOfColumns + MARGIN * 2);
+                var hh = height / ((float)_dataLayout.numberOfDataLines + MARGIN * 2);
+                var x = (int)((MARGIN + column + 0.5) * ww);
+                var y = (int)((MARGIN + line + 0.5) * hh);
 
                 var monochromaticIndex = y * width + x;
-                int value = monochromaticBytes[monochromaticIndex];
+                if (monochromaticIndex < monochromaticBytes.Length)
+                {
+                    int value = monochromaticBytes[monochromaticIndex];
                 
-                var truthness = value > ColorValueThresholdForTruthness;
-                _data[i] = truthness;
+                    var truthness = value > ColorValueThresholdForTruthness;
+                    _data[i] = truthness;
+                }
+                else
+                {
+                    // FIXME: properly handle out of bounds issues
+                    Console.WriteLine("Out of bounds");
+                }
             }
 
             return _data;

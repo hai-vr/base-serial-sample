@@ -3,12 +3,14 @@
 namespace Hai.PositionSystemToExternalProgram.Core;
 
 /// This uses a coordinate system where the top-left is (0, 0)
+[Serializable]
 public class ExtractionCoordinates
 {
+    public ExtractionSource source;
     public int x;
     public int y;
-    public int requestedWidth;
-    public int requestedHeight;
+    public int requestedWidth = 256;
+    public int requestedHeight = 256;
     public float anchorX;
     public float anchorY;
 

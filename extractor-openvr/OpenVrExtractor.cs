@@ -122,7 +122,10 @@ public class OpenVrExtractor
         return true;
     }
     
-    public ExtractionResult Extract(ExtractionSource source, ExtractionCoordinates coordinates)
+    /// Extract the given coordinates from the image.
+    /// If the width or height changes, this will result in the instantiation of new arrays, so you should not invoke
+    /// this function on the same instance if you need different output sizes.
+    public ExtractionResult Extract(ExtractionCoordinates coordinates)
     {
         var isInitialized = TryInitializeDevice() && TryInitializeOpenVrResources();
         if (!isInitialized)
@@ -133,7 +136,7 @@ public class OpenVrExtractor
             };
         }
 
-        var eyeResource = source == ExtractionSource.RightEye ? _right : _left;
+        var eyeResource = coordinates.source == ExtractionSource.RightEye ? _right : _left;
         
         var rect = coordinates.ToRectangle(eyeResource.desc2d.Width, eyeResource.desc2d.Height);
         var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.

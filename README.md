@@ -26,7 +26,7 @@ Data extraction goes through this:
 
 ### Data
 
-Data is made out of sequential 32-bit groups (little-endian).
+Data is made out of sequential 32-bit groups; least significant bit first, little endian.
 
 Data visually starts at the top-left of the region, scans horizontally up until the layout's width, then vertically.
 
@@ -78,14 +78,14 @@ Adding new lines at the end is considered to be a breaking change, because the c
 | **33** | Attenuation of the 1st light, as given by `unity_4LightAtten0[1]`.                                                                                                |
 | **34** | Attenuation of the 2nd light, as given by `unity_4LightAtten0[2]`.                                                                                                |
 | **35** | Attenuation of the 3rd light, as given by `unity_4LightAtten0[3]`.                                                                                                |
-| **36** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD position in world space.                                         |
-| **37** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD position in world space.                                         |
-| **38** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD position in world space.                                         |
+| **36** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD position in world space.                                |
+| **37** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD position in world space.                                |
+| **38** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD position in world space.                                |
 | **39** | Unused, reserved for future non-breaking use. This is part of the checksum.                                                                                       |
-| **40** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD rotation in world space.                                         |
-| **41** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD rotation in world space.                                         |
-| **42** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD rotation in world space.                                         |
-| **43** | Unused, reserved for future non-breaking use. This is part of the checksum. Will probably be HMD rotation in world space.                                         |
+| **40** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD rotation in world space.                                |
+| **41** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD rotation in world space.                                |
+| **42** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD rotation in world space.                                |
+| **43** | Unused, reserved for future non-breaking use. This is part of the checksum.<br/>This will probably be HMD rotation in world space.                                |
 | **44** | Unused, reserved for future non-breaking use. This is part of the checksum.                                                                                       |
 | **45** | Unused, reserved for future non-breaking use. This is part of the checksum.                                                                                       |
 | **46** | Unused, reserved for future non-breaking use. This is part of the checksum.                                                                                       |
@@ -104,11 +104,15 @@ or special shaders may interfere with the data region.
 
 When this happens, we need to detect this happening and disregard any decoded data.
 
-To do this, we calculate a CRC-32 hash in the shader that this program needs to check.
+To do this, we calculate a CRC-32 hash in the shader that this program will check.
 
-TODO
+If the check fails, we reuse the last known valid data.
 
-### Third-party acknowlegements
+The CRC-32 hash is based on groups 1 to 51 (inclusive). The data in 36 to 51 (inclusive) are not currently used.
+However, including them as part of the checksum ensures that it is not a breaking change to add a few additional pieces of
+new data in the shader for future versions.
+
+### Third-party acknowledgements
 
 Third party acknowledgements can also be found in the HThirdParty/ subfolder:
 - Open HThirdParty/thirdparty-lookup.json

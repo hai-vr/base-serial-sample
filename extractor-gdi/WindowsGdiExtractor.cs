@@ -66,10 +66,15 @@ public class WindowGdiExtractor
         
         var sw = Stopwatch.StartNew();
         // This can take a long time, like 350ms
-        var wnds = WindowNameBiz.FindWindowsWithText(windowName => windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant())).ToList();
+        var wnds = WindowNameBiz.FindWindowsWithText(windowName =>
+        {
+            Console.WriteLine($"{windowName.ToLowerInvariant()} VS {desiredWindowName.ToLowerInvariant()} :: {windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant())}");
+            return windowName.ToLowerInvariant().StartsWith(desiredWindowName.ToLowerInvariant());
+        }).ToList();
         Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to enumerate windows");
         
         if (wnds.Count == 0) return;
+        Console.WriteLine($"Found {wnds.Count} windows");
         
         _widnowHandle_hwnd = wnds[0];
         if (_widnowHandle_hwnd != (IntPtr)0)
@@ -94,7 +99,10 @@ public class WindowGdiExtractor
         }
     }
 
-    public ExtractionResult Extract(ExtractionSource source, ExtractionCoordinates coordinates)
+    /// Extract the given coordinates from the image.
+    /// If the width or height changes, this will result in the instantiation of new arrays, so you should not invoke
+    /// this function on the same instance if you need different output sizes. 
+    public ExtractionResult Extract(ExtractionCoordinates coordinates)
     {
         if (CheckWindowValidAndUpdateIt())
         {

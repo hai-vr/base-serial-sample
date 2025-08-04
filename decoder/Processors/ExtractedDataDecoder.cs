@@ -23,28 +23,21 @@ public class ExtractedDataDecoder
     private const int LightAttenuationStart = LightColorStart + 4 * NumberOfComponentsInAColor;
     private const int HmdPositionStart = 36;
     private const int HmdRotationStart = 40;
+    public const int GroupLength = 52;
+    
+    private const uint Crc32Polynomial = 0xEDB88320u;
 
     private bool[] _data;
-
-    public bool IsDataValid(bool[] data, int crc32Line)
-    {
-        var crc32StartPos = crc32Line * NumberOfBitsInAFloat;
-        var bulkPart = data.AsSpan(0, crc32StartPos);
-        var crc32Part = data.AsSpan(crc32StartPos, 32);
-
-        // var calculatedCrc32 = InCRC32.CalculateCrc32(bulkPart);
-        // var storedCrc32 = InCRC32.ExtractCrc32FromBits(crc32Part);
-        // return calculatedCrc32 == storedCrc32;
-        return true;
-    }
 
     public void DecodeInto(DecodedData decodedMutated, bool[] dataLines)
     {
         _data = dataLines;
         
-        var checksum = SampleUInt32(Checksum);
-        // TODO: Calculate checksum
-        if (false)
+        var receivedChecksum = SampleUInt32(Checksum);
+        var calculatedChecksum = CalculateChecksum();
+
+        var checksumPasses = receivedChecksum == calculatedChecksum;
+        if (!checksumPasses)
         {
             decodedMutated.validity = DataValidity.InvalidChecksum;
             return;
@@ -82,6 +75,39 @@ public class ExtractedDataDecoder
         }
         
         decodedMutated.validity = DataValidity.Ok;
+    }
+
+    private uint CalculateChecksum()
+    {
+        uint crc = 0xFFFFFFFFu;
+        for (var line = Time; line < GroupLength; line++)
+        {
+            crc = CRC32UpdateUint(crc, SampleUInt32(line));
+        }
+        crc = crc ^ 0xFFFFFFFFu;
+        return crc;
+    }
+
+    private uint CRC32UpdateUint(uint crc, uint value)
+    {
+        crc = CRC32UpdateByte(crc, value & 0xFF);
+        crc = CRC32UpdateByte(crc, (value >> 8) & 0xFF);
+        crc = CRC32UpdateByte(crc, (value >> 16) & 0xFF);
+        crc = CRC32UpdateByte(crc, (value >> 24) & 0xFF);
+        return crc;
+    }
+
+    private uint CRC32UpdateByte(uint crc, uint byte_val)
+    {
+        uint temp = crc ^ byte_val;
+        for (int i = 0; i < 8; i++)
+        {
+            if ((temp & 1) > 0)
+                temp = (temp >> 1) ^ Crc32Polynomial;
+            else
+                temp = temp >> 1;
+        }
+        return temp;
     }
 
     private void DecodeLight(int index, DecodedLight light)
@@ -183,15 +209,13 @@ public class ExtractedDataDecoder
 
     private uint SampleUInt32(int line)
     {
-        var floatRepresentation = Decode32Bit(line);
-        return BitConverter.ToUInt32(BitConverter.GetBytes(floatRepresentation), 0);
+        return Decode32Bit(line);
     }
 
     private uint Decode32Bit(int line)
     {
         var startPos = line * NumberOfBitsInAFloat;
         if (startPos < 0 || _data.Length < startPos + NumberOfBitsInAFloat) throw new ArgumentOutOfRangeException(nameof(line));
-        // var dataLine = _data.AsSpan(startPos);
             
         uint floatRepresentation = 0;
         for (var bit = 0; bit < NumberOfBitsInAFloat; bit++)

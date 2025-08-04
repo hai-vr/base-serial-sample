@@ -1,6 +1,7 @@
 using System.Numerics;
 using Hai.HView.Data;
 using Hai.PositionSystemToExternalProgram.Core;
+using Hai.PositionSystemToExternalProgram.Processors;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -111,57 +112,107 @@ public class UiMainApplication
         _scrollManager.MakeTab("Extractor", () =>
         {
             ImGui.SeparatorText("OpenVR");
+            var anyCoordinateChanged = false;
             if (!isOpenVrRunning)
             {
                 ImGui.Text("OpenVR is not running.");
                 ImGui.SeparatorText("Desktop");
-                anyChanged |= ImGui.SliderInt("Window Offset X", ref _config.offsetX, 0, 100);
-                anyChanged |= ImGui.SliderInt("Window Offset Y", ref _config.offsetY, 0, 1000);
-                anyChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
+                anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset X", ref _config.desktopCoordinates.x, 0, 100);
+                anyCoordinateChanged |= ImGui.SliderInt("Desktop Offset Y", ref _config.desktopCoordinates.y, 0, 1000);
+                anyCoordinateChanged |= ImGui.SliderFloat("Desktop Anchor X", ref _config.desktopCoordinates.anchorX, 0f, 1f);
+                anyCoordinateChanged |= ImGui.SliderFloat("Desktop Anchor Y", ref _config.desktopCoordinates.anchorY, 0f, 1f);
+                anyCoordinateChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
+                if (ImGui.Button("Reset to defaults (except Window name)"))
+                {
+                    anyCoordinateChanged = true;
+                    _config.SetDesktopCoordinatesToDefault();
+                }
             }
             else
             {
-                anyChanged |= ImGui.SliderInt("Image Offset X", ref _config.vrOffsetX, 0, 100);
-                anyChanged |= ImGui.SliderInt("Image Offset Y", ref _config.vrOffsetY, 0, 1000);
-                anyChanged |= ImGui.Checkbox("Use right eye", ref _config.vrUseRightEye);
-            }
-            
-            var extractedData = _uiActions.ExtractedData();
-            var bits = _uiActions.Bits();
-
-            ImGui.SeparatorText("Debug");
-            ImGui.Columns(2);
-            for (var row = 0; row < 32; row++)
-            {
-                var numberOfColumns = 32;
-                for (var index = 0; index < numberOfColumns; index++)
+                anyCoordinateChanged |= ImGui.SliderInt("VR Offset X", ref _config.vrCoordinates.x, 0, 100);
+                anyCoordinateChanged |= ImGui.SliderInt("VR Offset Y", ref _config.vrCoordinates.y, 0, 1000);
+                anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor X", ref _config.vrCoordinates.anchorX, 0f, 1f);
+                anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor Y", ref _config.vrCoordinates.anchorY, 0f, 1f);
+                anyCoordinateChanged |= ImGui.Checkbox("Use right eye", ref _config.vrUseRightEye);
+                if (ImGui.Button("Reset to defaults"))
                 {
-                    var inx = row * numberOfColumns + index;
-                    var b = inx < bits.Length ? bits[inx] : false;
-                    var xx = b;
-                    ImGui.Text(xx ? "X" : ".");
-                    if (index != numberOfColumns - 1)
-                    {
-                        ImGui.SameLine();
-                    }
+                    anyCoordinateChanged = true;
+                    _config.SetVrCoordinatesToDefault();
                 }
             }
-            ImGui.NextColumn();
 
+            if (anyCoordinateChanged)
+            {
+                _uiActions.ConfigCoordinatesUpdated();
+            }
+
+            anyChanged |= anyCoordinateChanged;
+            
+            var extractedData = _uiActions.ExtractedData();
             if (extractedData.IsValid())
             {
+                var bits = _uiActions.Bits();
+                var data = _uiActions.Data();
+                var valid = data.validity == DataValidity.Ok;
+
+                ImGui.SeparatorText("Debug");
+                ImGui.Columns(2);
+                if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+                switch (data.validity)
+                {
+                    case DataValidity.Ok:
+                        ImGui.Text("Data is OK");
+                        break;
+                    case DataValidity.InvalidChecksum:
+                        ImGui.Text("Checksum is failing");
+                        break;
+                    case DataValidity.UnexpectedVendor:
+                        ImGui.Text("Unexpected vendor");
+                        break;
+                    case DataValidity.UnexpectedMajorVersion:
+                        ImGui.Text("Unexpected major version");
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+                if (!valid) ImGui.PopStyleColor();
+                
+                if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
+                var numberOfColumns = 16;
+                for (var row = 0; row < ExtractedDataDecoder.GroupLength; row++)
+                {
+                    ImGui.Text($"#{row:00}  ");
+                    ImGui.SameLine();
+                    for (var index = 0; index < numberOfColumns; index++)
+                    {
+                        var inx = row * numberOfColumns + index;
+                        var b = inx < bits.Length ? bits[inx] : false;
+                        var xx = b;
+                        ImGui.Text(xx ? "X" : ".");
+                        if (index != numberOfColumns - 1)
+                        {
+                            ImGui.SameLine();
+                        }
+                    }
+                }
+                if (!valid) ImGui.PopStyleColor();
+                ImGui.NextColumn();
+
                 var textureId = TurnDataIntoTexture(controller, extractedData);
 
                 ImGui.Text($"{extractedData.Iteration}");
                 ImGui.Image(textureId, new Vector2(_lastWidth, _lastHeight));
-                var location = _uiActions.Location();
-                ImGui.SliderInt("X", ref location.coordinates.x, 0, 2048);
-                ImGui.SliderInt("Y", ref location.coordinates.y, 0, 2048);
-                ImGui.SliderInt("W", ref location.coordinates.requestedWidth, 1, 1024);
-                ImGui.SliderInt("H", ref location.coordinates.requestedHeight, 1, 1024);
-                ImGui.SliderFloat("aX", ref location.coordinates.anchorX, 0, 1f);
-                ImGui.SliderFloat("aY", ref location.coordinates.anchorY, 0, 1f);
-                ImGui.Checkbox("Use right eye", ref location.useRightEye);
+                var coordinates = _uiActions.IsOpenVrRunning() ? _uiActions.VrCoordinates() : _uiActions.DesktopCoordinates();
+                
+                // FIXME: Not thread safe, these requests need to be enqueued
+                ImGui.SliderInt("W", ref coordinates.requestedWidth, 1, 1024);
+                ImGui.SliderInt("H", ref coordinates.requestedHeight, 1, 1024);
+                if (ImGui.Button("Reset to defaults##size"))
+                {
+                    coordinates.requestedWidth = 32 * 4;
+                    coordinates.requestedHeight = 64 * 4;
+                }
             }
             
             ImGui.Columns(1);

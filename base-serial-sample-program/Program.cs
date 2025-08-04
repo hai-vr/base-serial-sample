@@ -32,9 +32,10 @@ internal class MainApp
         var ovrStarter = new OpenVrStarter();
         var ovrExtractor = new OpenVrExtractor(ovrStarter);
         var windowGdiExtractor = new WindowGdiExtractor();
-        var toBits = new OversizedToBitsTransformer(new PositionSystemDataLayout());
+        var layout = new PositionSystemDataLayout();
+        var toBits = new OversizedToBitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
-        _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder);
+        _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder, layout);
         
         _uiMain = new UiMainApplication(new UiActions(_routine), config);
         

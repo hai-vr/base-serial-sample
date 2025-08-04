@@ -3,6 +3,15 @@ using Newtonsoft.Json;
 
 namespace Hai.HView.Data;
 
+[Serializable]
+public class ConfigCoord
+{
+    public int x;
+    public int y;
+    public float anchorX;
+    public float anchorY;
+}
+
 public class SavedData
 {
     private const string MainFilename = "user_config.json";
@@ -22,10 +31,33 @@ public class SavedData
     public float rotationMultiplierL1 = 1f;
     public float rotationMultiplierL2 = 1f;
     public string windowName = "VR";
-    
-    public int vrOffsetX = 0;
-    public int vrOffsetY = 0;
+
+    public ConfigCoord desktopCoordinates = new ConfigCoord();
+    public ConfigCoord vrCoordinates = new ConfigCoord();
     public bool vrUseRightEye = false;
+
+    public void SetDesktopCoordinatesToDefault()
+    {
+        desktopCoordinates.x = 8;
+        desktopCoordinates.y = 31;
+        desktopCoordinates.anchorX = 0f;
+        desktopCoordinates.anchorY = 0f;
+    }
+
+    public void SetVrCoordinatesToDefault()
+    {
+        vrCoordinates.x = 0;
+        vrCoordinates.y = 0;
+        vrCoordinates.anchorX = 0f;
+        vrCoordinates.anchorY = 0.5f;
+        vrUseRightEye = false;
+    }
+
+    public SavedData()
+    {
+        SetDesktopCoordinatesToDefault();
+        SetVrCoordinatesToDefault();
+    }
 
     public static SavedData OpenConfig()
     {

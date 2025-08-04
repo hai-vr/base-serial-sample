@@ -20,13 +20,32 @@ public class Routine
     private readonly SavedData _config;
     private readonly OversizedToBitsTransformer _toBits;
     private readonly ExtractedDataDecoder _decoder;
+    private readonly PositionSystemDataLayout _layout;
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
     public bool[] Bits { get; private set; }
     public DecodedData Data { get; }
     public ExtractionResult ExtractedData { get; private set; }
-    public ExtractLocation Location { get; private set; } = new();
+    public ExtractionCoordinates DesktopCoordinates { get; private set; } = new();
+    public ExtractionCoordinates VrCoordinates { get; private set; } = new();
+    
+    public void RefreshConfiguration()
+    {
+        CopyCoordinates(_config.desktopCoordinates, DesktopCoordinates);
+        CopyCoordinates(_config.vrCoordinates, VrCoordinates);
+        
+        _windowGdiExtractor.desiredWindowName = _config.windowName;
+        VrCoordinates.source = _config.vrUseRightEye ? ExtractionSource.RightEye : ExtractionSource.LeftEye;
+    }
+
+    private void CopyCoordinates(ConfigCoord from, ExtractionCoordinates to)
+    {
+        to.x = from.x;
+        to.y = from.y;
+        to.anchorX = from.anchorX;
+        to.anchorY = from.anchorY;
+    }
 
     private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
     private readonly Stopwatch _stopwatch;
@@ -35,7 +54,14 @@ public class Routine
     private double _nextStartOpenVrTime;
     private int _lastExtractionIteration;
 
-    public Routine(TcodeSerial serial, OpenVrStarter ovrStarter, OpenVrExtractor ovrExtractor, WindowGdiExtractor windowGdiExtractor, SavedData config, OversizedToBitsTransformer toBits, ExtractedDataDecoder decoder)
+    public Routine(TcodeSerial serial,
+        OpenVrStarter ovrStarter,
+        OpenVrExtractor ovrExtractor,
+        WindowGdiExtractor windowGdiExtractor,
+        SavedData config,
+        OversizedToBitsTransformer toBits,
+        ExtractedDataDecoder decoder,
+        PositionSystemDataLayout layout)
     {
         _serial = serial;
         _ovrStarter = ovrStarter;
@@ -44,7 +70,8 @@ public class Routine
         _config = config;
         _toBits = toBits;
         _decoder = decoder;
-        
+        _layout = layout;
+
         RawSerialData = new TcodeData();
         Data = new DecodedData();
 
@@ -58,6 +85,8 @@ public class Routine
         {
             Success = false
         };
+        
+        RefreshConfiguration();
     }
 
     public void Enqueue(Action action)
@@ -101,7 +130,6 @@ public class Routine
         }
         
         // TODO: Only update this when the config updates
-        _windowGdiExtractor.desiredWindowName = _config.windowName;
 
         if (IsOpenVrRunning)
         {
@@ -118,10 +146,18 @@ public class Routine
         }
 
         // We do the check again, as PollVrEvents may have shut OpenVR down.
+        var coordinates = IsOpenVrRunning ? VrCoordinates : DesktopCoordinates;
         if (IsOpenVrRunning)
         {
-            var eye = Location.useRightEye ? ExtractionSource.RightEye : ExtractionSource.LeftEye;
-            var result = _ovrExtractor.Extract(eye, Location.coordinates);
+            // FIXME: I think we need to get the OpenVR screen height, because the output is constant-size based on the height so that Resolution Per Eye doesn't affect it.
+            var scale = 1 / 0.6f;
+            // var scale = 1600 / 1000f;
+            
+            // FIXME: Move margin to data layout
+            var MARGIN = 1;
+            coordinates.requestedWidth = (int)((_layout.numberOfColumns + MARGIN * 2) * _layout.EncodedSquareSize * scale);
+            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + MARGIN * 2) * _layout.EncodedSquareSize * scale);
+            var result = _ovrExtractor.Extract(VrCoordinates);
             if (result.Success)
             {
                 ExtractedData = result;
@@ -129,21 +165,21 @@ public class Routine
         }
         else
         {
-            var result = _windowGdiExtractor.Extract(ExtractionSource.Generic, Location.coordinates);
+            // FIXME: Move margin to data layout
+            var MARGIN = 1;
+            coordinates.requestedWidth = (int)((_layout.numberOfColumns + MARGIN * 2) * _layout.EncodedSquareSize);
+            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + MARGIN * 2) * _layout.EncodedSquareSize);
+            var result = _windowGdiExtractor.Extract(DesktopCoordinates);
             if (result.Success)
             {
                 ExtractedData = result;
-            }
-            else
-            {
-                Console.WriteLine("Failed to extract");
             }
         }
 
         if (ExtractedData.Success && _lastExtractionIteration != ExtractedData.Iteration)
         {
             _lastExtractionIteration = ExtractedData.Iteration;
-            Bits = _toBits.ExtractBitsFromSubregion(ExtractedData.MonochromaticData, Location.coordinates.requestedWidth, Location.coordinates.requestedHeight);
+            Bits = _toBits.ExtractBitsFromSubregion(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
             _decoder.DecodeInto(Data, Bits);
         }
         
@@ -188,22 +224,4 @@ public class TcodeData
     public int R1 = 5000;
     public int R2 = 5000;
     public bool autoUpdate = true;
-}
-
-public class ExtractLocation
-{
-    // public int X = 0;
-    // public int Y = 0;
-    // public int W = 512;
-    // public int H = 512;
-    public ExtractionCoordinates coordinates = new()
-    {
-        x = 0,
-        y = 0,
-        requestedWidth = 128,
-        requestedHeight = 128,
-        anchorX = 0f,
-        anchorY = 0f
-    };
-    public bool useRightEye = false;
 }
