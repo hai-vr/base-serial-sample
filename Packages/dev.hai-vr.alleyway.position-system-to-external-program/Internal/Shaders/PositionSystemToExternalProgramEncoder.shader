@@ -58,8 +58,7 @@ Shader "Hai/PositionSystemToExternalProgram"
             float4 _MainTex_ST;
             
             uniform float _VRChatMirrorMode;
-
-
+            uniform float _VRChatCameraMode;
             
 // -----------------------------------------------------------------------------------------------------------------
 // [[ BEGIN THIRD PARTY SECTION -- LICENSE ONLY APPLIES TO THIS SECTION ]]
@@ -280,7 +279,12 @@ SOFTWARE.
 				// FIXME: This is old code for camera stacking. We need to change it so that it only outputs to desktop,
 				// or streaming camera, but not photos
 //            		if (_ProjectionParams.y != -4 && _IsTestScript < 0.5)
-            		if (false)
+            		if (
+            			!( // Do NOT return IF:
+            				abs(UNITY_MATRIX_V[0].y) < 0.0000005) // isDesktop
+            				|| _VRChatCameraMode == 1 // Is VR handheld camera
+            				|| _ScreenParams.x != _ScreenParams.y // Wild guess: The cameras we want to render to are almost never square
+            			)
             		{
             			clip(-1);
             			return half4(0, 0, 0, 0);
@@ -295,7 +299,7 @@ SOFTWARE.
             	
             	float serialize_numberOfLines = ceil((GROUP_LENGTH * 32.0) / SERIALIZE_NumberOfColumns);
             	
-				float nan = sqrt(-1);
+				float nan = asfloat(-1);
 				
             	// We need black margins to avoid the main texture contaminating the neighbouring pixels too.
             	// Also, pixels shouldn't be pure white, because it will cause bloom to contaminate the neighbouring pixels.
