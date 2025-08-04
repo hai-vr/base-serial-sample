@@ -213,7 +213,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: NewSimpleSquare
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: -5716681864270162303, guid: 8c9584c376f74a139f817df9ebca77b2, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
