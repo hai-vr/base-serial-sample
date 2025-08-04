@@ -12,6 +12,8 @@ namespace Hai.PositionSystemToExternalProgram.Program;
 
 public class Routine
 {
+    private const int ViveProEyeVerticalResolution = 1600;
+    
     private readonly TcodeSerial _serial;
     private readonly OpenVrStarter _ovrStarter;
     private readonly OpenVrExtractor _ovrExtractor;
@@ -148,8 +150,7 @@ public class Routine
         var coordinates = IsOpenVrRunning ? VrCoordinates : DesktopCoordinates;
         if (IsOpenVrRunning)
         {
-            // FIXME: I think we need to get the OpenVR screen height, because the output is constant-size based on the height so that Resolution Per Eye doesn't affect it.
-            var scale = 1 / 0.6f;
+            var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalResolution);
             // var scale = 1600 / 1000f;
             
             // FIXME: Move margin to data layout

@@ -120,6 +120,12 @@ public class OpenVrExtractor
         
         return true;
     }
+
+    public int VerticalResolution(ExtractionSource source)
+    {
+        var eyeResource = source == ExtractionSource.RightEye ? _right : _left;
+        return eyeResource.desc2d.Height;
+    }
     
     /// Extract the given coordinates from the image.
     /// If the width or height changes, this will result in the instantiation of new arrays, so you should not invoke
