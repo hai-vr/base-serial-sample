@@ -8,7 +8,9 @@ public class OversizedToBitsTransformer
     // All brightness comparisons in the decoder should expect values that vary from what was set
     // in the shader, as there is still a possibility that transparency, post-processing, bloom, or other
     // shader effects will write over our pixels.
-    private const int ColorValueThresholdForTruthness = 110;
+    // We can't use a too low value, because tonemapping can occur and might change the blackness,
+    // even in the presence of bloom.
+    private const int ColorValueThresholdForTruthness = 30;
 
     private readonly PositionSystemDataLayout _dataLayout;
     private readonly int _shiftX;
