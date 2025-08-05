@@ -136,8 +136,8 @@ public class UiMainApplication
                     ImGui.Text("OpenVR is not running.");
                 }
                 ImGui.SeparatorText("Window");
-                anyCoordinateChanged |= ImGui.SliderInt("Window Offset X", ref _config.windowCoordinates.x, 0, 100);
-                anyCoordinateChanged |= ImGui.SliderInt("Window Offset Y", ref _config.windowCoordinates.y, 0, 1000);
+                anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset X", ref _config.windowCoordinates.x);
+                anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset Y", ref _config.windowCoordinates.y);
                 anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor X", ref _config.windowCoordinates.anchorX, 0f, 1f);
                 anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor Y", ref _config.windowCoordinates.anchorY, 0f, 1f);
                 anyCoordinateChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
@@ -150,8 +150,8 @@ public class UiMainApplication
             else
             {
                 ImGui.SeparatorText("OpenVR");
-                anyCoordinateChanged |= ImGui.SliderInt("VR Offset X", ref _config.vrCoordinates.x, 0, 100);
-                anyCoordinateChanged |= ImGui.SliderInt("VR Offset Y", ref _config.vrCoordinates.y, 0, 1000);
+                anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset X", ref _config.vrCoordinates.x);
+                anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset Y", ref _config.vrCoordinates.y);
                 anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor X", ref _config.vrCoordinates.anchorX, 0f, 1f);
                 anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor Y", ref _config.vrCoordinates.anchorY, 0f, 1f);
                 anyCoordinateChanged |= ImGui.Checkbox("Use right eye", ref _config.vrUseRightEye);
@@ -256,6 +256,34 @@ public class UiMainApplication
         {
             _config.SaveConfig();
         }
+    }
+
+    private bool SmallAdjustmentSlider(string label, ref int coord)
+    {
+        var anyChanged = false;
+        if (ImGui.Button($"-##minus__{label}"))
+        {
+            coord--;
+            anyChanged = true;
+        }
+        ImGui.SameLine();
+        anyChanged |= ImGui.SliderInt($"##slider__{label}", ref coord, -100, 100);
+        ImGui.SameLine();
+        if (ImGui.Button($"+##plus__{label}"))
+        {
+            coord++;
+            anyChanged = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button($"0##plus__{label}"))
+        {
+            coord = 0;
+            anyChanged = true;
+        }
+        ImGui.SameLine();
+        ImGui.Text(label);
+
+        return anyChanged;
     }
 
     private static void InterpretedDebug(InterpretedLightData interpreted)
