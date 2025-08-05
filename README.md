@@ -61,16 +61,21 @@ Data extraction goes through this:
 Data is made out of sequential 32-bit groups; least significant bit first, little endian.
 
 Data visually starts at the top-left of the region, scans horizontally up until the layout's width, then vertically.
+By default, the layout uses 16 columns, with a margin of 1 on every side.
+
+On window rendering, it is drawn at the top left. On VR rendering, it is drawn centered vertically, located against the left edge of the left eye.
+The size of the squares in VR is a fixed proportion of the vertical resolution to counteract the *Resolution Per Eye* setting.
 
 By default, the shader outputs:
-- 50% gray for its true value so that it does not trigger bloom, and
-- NaN for its false value, which is perceived as black.
+- 50% red for its true value, and 0% green. It is 50% so that it does not trigger bloom on post-processing heavy scenarios.
+- A negative pixel (-10000, -10000, -10000, 1) for its false value, which is perceived as black. The pixel is made of negative values so that bloom will not affect the black pixels.
 
-On the program side, we check for a value above 110 (43%), but this may need to be adjusted if post-processing is too strong.
+On the program side, we check for a red value above 110 (43%). Optionally, the green value is removed from the red value, in an attempt to cancel out bloom.
 
 ### Shader version 1.0.0
 
-Adding new lines at the end is considered to be a breaking change, because the checksum changes. 
+Adding new lines at the end is considered to be a breaking change because the checksum would change, and it would be vertically taller, compromising the vertical centering.
+This is why there is reserved space for future use. 
 
 | Group  | Description                                                                                                                                                       |
 |--------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|
