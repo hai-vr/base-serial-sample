@@ -5,6 +5,7 @@ public class PositionSystemDataLayout
     private const int SERIALIZE_NumberOfColumns = 16;
     private const int GroupLength = 52;
     
+    public readonly int MarginPerSide = 1;
     public readonly int EncodedSquareSize = 4;
     public readonly int numberOfColumns = SERIALIZE_NumberOfColumns;
     public readonly int numberOfDataLines = CalculateNumberOfLines(SERIALIZE_NumberOfColumns);

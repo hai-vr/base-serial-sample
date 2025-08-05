@@ -31,12 +31,10 @@ public class OversizedToBitsTransformer
             var column = i % _dataLayout.numberOfColumns;
             var line = i / _dataLayout.numberOfColumns;
 
-            // FIXME: Move margin to data layout
-            int MARGIN = 1;
-            var ww = width / ((float)_dataLayout.numberOfColumns + MARGIN * 2);
-            var hh = height / ((float)_dataLayout.numberOfDataLines + MARGIN * 2);
-            var x = (int)((MARGIN + column + 0.5) * ww);
-            var y = (int)((MARGIN + line + 0.5) * hh);
+            var ww = width / ((float)_dataLayout.numberOfColumns + _dataLayout.MarginPerSide * 2);
+            var hh = height / ((float)_dataLayout.numberOfDataLines + _dataLayout.MarginPerSide * 2);
+            var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * ww);
+            var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * hh);
 
             var monochromaticIndex = y * width + x;
             if (monochromaticIndex < monochromaticBytes.Length)

@@ -155,13 +155,12 @@ public class Routine
         var coordinates = isUsingVrExtractor ? VrCoordinates : WindowCoordinates;
         if (isUsingVrExtractor)
         {
+            // FIXME: Where does this magic constant even come from? Both ViveProEyeVerticalBase and 1/0.6f
             var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
             // var scale = 1600 / 1000f;
             
-            // FIXME: Move margin to data layout
-            var MARGIN = 1;
-            coordinates.requestedWidth = (int)((_layout.numberOfColumns + MARGIN * 2) * _layout.EncodedSquareSize * scale);
-            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + MARGIN * 2) * _layout.EncodedSquareSize * scale);
+            coordinates.requestedWidth = (int)((_layout.numberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
+            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
             var result = _ovrExtractor.Extract(VrCoordinates);
             if (result.Success)
             {
@@ -170,10 +169,8 @@ public class Routine
         }
         else
         {
-            // FIXME: Move margin to data layout
-            var MARGIN = 1;
-            coordinates.requestedWidth = (int)((_layout.numberOfColumns + MARGIN * 2) * _layout.EncodedSquareSize);
-            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + MARGIN * 2) * _layout.EncodedSquareSize);
+            coordinates.requestedWidth = (int)((_layout.numberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
+            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
             var result = _windowGdiExtractor.Extract(WindowCoordinates);
             if (result.Success)
             {
