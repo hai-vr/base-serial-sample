@@ -26,28 +26,43 @@ public class OversizedToBitsTransformer
 
     public bool[] ExtractBitsFromSubregion(byte[] monochromaticBytes, int width, int height)
     {
+        var squareSize = _dataLayout.EncodedSquareSize;
+        var actualInterSquareDistanceW = width / ((float)_dataLayout.numberOfColumns + _dataLayout.MarginPerSide * 2);
+        var actualInterSquareDistanceH = height / ((float)_dataLayout.numberOfDataLines + _dataLayout.MarginPerSide * 2);
+        var interPixelDistanceW = actualInterSquareDistanceW / squareSize;
+        var interPixelDistanceH = actualInterSquareDistanceH / squareSize;
+        
         for (var i = 0; i < _data.Length; i++)
         {
             var column = i % _dataLayout.numberOfColumns;
             var line = i / _dataLayout.numberOfColumns;
+            var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * actualInterSquareDistanceW);
+            var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * actualInterSquareDistanceH);
 
-            var ww = width / ((float)_dataLayout.numberOfColumns + _dataLayout.MarginPerSide * 2);
-            var hh = height / ((float)_dataLayout.numberOfDataLines + _dataLayout.MarginPerSide * 2);
-            var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * ww);
-            var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * hh);
-
-            var monochromaticIndex = y * width + x;
-            if (monochromaticIndex < monochromaticBytes.Length)
+            var sum = 0;
+            var count = 0;
+            for (var p = 0; p < squareSize; p++)
             {
-                int value = monochromaticBytes[monochromaticIndex];
-                
-                var truthness = value > ColorValueThresholdForTruthness;
-                _data[i] = truthness;
+                for (var q = 0; q < squareSize; q++)
+                {
+                    var xx = x + (int)((p - (float)squareSize / 2) * interPixelDistanceW);
+                    var yy = y + (int)((q - (float)squareSize / 2) * interPixelDistanceH);
+                    if (TryGetMonochromaticIndex(xx, yy, out var monochromaticIndex))
+                    {
+                        sum += monochromaticBytes[monochromaticIndex];
+                        count++;
+                    }
+                }
             }
-            else
+            
+            var value = (float)sum / count;
+            var truthness = value > ColorValueThresholdForTruthness;
+            _data[i] = truthness;
+
+            bool TryGetMonochromaticIndex(int xx, int yy, out int result)
             {
-                // FIXME: properly handle out of bounds issues
-                Console.WriteLine("Out of bounds");
+                result = yy * width + xx;
+                return result >= 0 && result < monochromaticBytes.Length;
             }
         }
 
