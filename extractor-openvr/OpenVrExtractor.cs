@@ -200,7 +200,10 @@ public class OpenVrExtractor
                 _colorDataB[iColor + 3] = _scratchMarshalData[iMarshal + 3];
                 
                 var iMonochromatic = iColor / 4;
-                _monochromaticDataB[iMonochromatic] = _colorDataB[iColor + 1]; // This is the green channel
+                _monochromaticDataB[iMonochromatic] = ExtractionMethodology.CombineRedGreen(
+                    _colorDataB[iColor],
+                    _colorDataB[iColor + 1]
+                );
                 
                 var isPureBlackPixel = _colorDataB[iColor] == 0 && _colorDataB[iColor + 1] == 0 && _colorDataB[iColor + 2] == 0;
                 if (isPureBlackPixel)

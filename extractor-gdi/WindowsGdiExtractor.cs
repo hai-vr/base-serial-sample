@@ -252,7 +252,11 @@ public class WindowGdiExtractor
                         Console.WriteLine($"Outside bounds ({monochromaticScratchIndex} of {_monochromaticDataB.Length})");
                     }
                     
-                    _monochromaticDataB[monochromaticScratchIndex] = _bigWindowBytes[bigWindowBytesSampleIndex + 1]; // Sample from green
+                    _monochromaticDataB[monochromaticScratchIndex] = ExtractionMethodology.CombineRedGreen(
+                        _bigWindowBytes[bigWindowBytesSampleIndex + 2],
+                        _bigWindowBytes[bigWindowBytesSampleIndex + 1]
+                    );
+                    
                     if (IsMinimalMode)
                     {
                         _marshalDataB[directxScratchIndex + 1] = _bigWindowBytes[bigWindowBytesSampleIndex + 1];
