@@ -57,5 +57,6 @@ public enum ShaderV1_0_0
     Reserved48 = 48,
     Reserved49 = 49,
     Reserved50 = 50,
-    Reserved51 = 51,
+    
+    Canary = 51,
 }

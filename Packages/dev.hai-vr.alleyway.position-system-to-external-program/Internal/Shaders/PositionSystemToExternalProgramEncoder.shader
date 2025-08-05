@@ -112,6 +112,7 @@ SOFTWARE.
 
             static const uint VENDOR = 1366692562;
             static const uint VERSION = 1000000; // 1 000 000 is 1.0.0
+            static const uint CANARY = 1431677610;
             
 			static const int GROUP_32 = 32;
             
@@ -124,6 +125,7 @@ SOFTWARE.
 			static const int GROUP_LightAttenuationStart = 32;
 			static const int GROUP_HmdPositionStart = 36;
 			static const int GROUP_HmdRotationStart = 40;
+			static const int GROUP_Canary = 51;
 			static const int GROUP_LENGTH = 52;
             
 			static const int checksumDataSize = 1;
@@ -133,6 +135,7 @@ SOFTWARE.
             static const int posDataSize = 4 * 3;
             static const int colorDataSize = 4 * 4;
             static const int attenDataSize = 4;
+            static const int canaryDataSize = 1;
             
 			static const float Grayness = 0.5;
             
@@ -195,6 +198,12 @@ SOFTWARE.
                 	float data = unity_4LightAtten0[lightN];
                 	return asuint(data);
             	}
+            	// Notice the more or equal, we don't want to write over the reserved values.
+				else if (groupY >= GROUP_Canary && groupY < GROUP_Canary + canaryDataSize)
+				{
+					// note to self: Don't make the mistake again of casting this to float
+                	return CANARY;
+				}
             	else
             	{
                     return 0;
