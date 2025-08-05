@@ -280,10 +280,9 @@ SOFTWARE.
 				// or streaming camera, but not photos
 //            		if (_ProjectionParams.y != -4 && _IsTestScript < 0.5)
             		if (
-            			!( // Do NOT return IF:
-            				abs(UNITY_MATRIX_V[0].y) < 0.0000005) // isDesktop
-            				|| _VRChatCameraMode == 1 // Is VR handheld camera
-            				|| _ScreenParams.x != _ScreenParams.y // Wild guess: The cameras we want to render to are almost never square
+            			//!(abs(UNITY_MATRIX_V[0].y) < 0.0000005) // isDesktop (this didn't seem to work, we have to try to find a proper detection again later for the desktop main camera)
+            			_VRChatCameraMode != 1 // Is VR handheld camera
+            			&& _ScreenParams.x == _ScreenParams.y // Wild guess: The cameras we want to render to are almost never square
             			)
             		{
             			clip(-1);
