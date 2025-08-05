@@ -8,7 +8,7 @@ using Hai.PositionSystemToExternalProgram.Tcode;
 using Hai.PositionSystemToExternalProgram.Extractors.GDI;
 using Hai.PositionSystemToExternalProgram.Processors;
 
-namespace Hai.PositionSystemToExternalProgram.Program;
+namespace Hai.PositionSystemToExternalProgram.ApplicationLoop;
 
 public class Routine
 {

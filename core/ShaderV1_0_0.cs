@@ -1,4 +1,4 @@
-﻿namespace Hai.PositionSystemToExternalProgram.Program;
+﻿namespace Hai.PositionSystemToExternalProgram.Core;
 
 public enum ShaderV1_0_0
 {

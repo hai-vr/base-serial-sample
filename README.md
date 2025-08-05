@@ -28,6 +28,24 @@ If you are a user looking to use this software, please [check out the end-user d
 
 The information below is for developers looking to maintain the application. If you are a user, [check out the end-user documentation instead](https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program).
 
+### Project structure
+
+Main application execution projects:
+- **program**: The main entry point is `program/Program.cs`; this bootstraps all dependencies.
+- **application-loop**: The main application loop is in `application-loop/Routine.cs`.
+  - When the UI window closes, the UI window will ask the application loop to exit the loop.
+- **ui-imgui**: The default UI is in `ui-imgui/UiMainApplication.cs`.
+  - This runs in a separate UI thread.
+  - The framerate of the application loop does not depend on the refresh rate of the UI.
+  - All actions from the UI thread that affect the main application are enqueued through `ui-imgui/UiActions.cs` to run in the main thread.
+
+Core projects:
+- **core** contains data structures shared by many projects in this solution.
+- **decoder** contains the logic necessary to decode images into usable data.
+
+External system projects:
+- **extractor-gdi**, **extractor-openvr**, and **tcode** interact with various external system APIs.
+
 ### Data extraction procedure
 
 Data extraction goes through this:

@@ -5,6 +5,7 @@ using Hai.PositionSystemToExternalProgram.Extractors.OVR;
 using Hai.PositionSystemToExternalProgram.Tcode;
 using Hai.PositionSystemToExternalProgram.Extractors.GDI;
 using Hai.PositionSystemToExternalProgram.Processors;
+using Hai.PositionSystemToExternalProgram.ApplicationLoop;
 
 namespace Hai.PositionSystemToExternalProgram.Program;
 
@@ -34,18 +35,23 @@ internal class MainApp
         var toBits = new OversizedToBitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
         var interpreter = new DpsLightInterpreter();
+        
+        // Core
         _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder, layout, interpreter);
         
+        // UI
         _uiMain = new UiMainApplication(new UiActions(_routine), config);
         
         _windowRendering = new HVWindowRendering(false, 1024, 1024, AppTitle);
         _windowRendering.OnSubmitUi += _uiMain.SubmitUi;
         
-        _uiThread = new Thread(o =>
+        _uiThread = new Thread(_ =>
         {
             _uiMain.Initialize();
-            _windowRendering.UiLoop();
-            WhenWindowClosed();
+            _windowRendering.UiLoop(); // Blocking call. Exits when window closes.
+            
+            // When window closes, The following is called:
+            _routine.Finish();
         })
         {
             CurrentCulture = CultureInfo.InvariantCulture, // We don't want locale-specific numbers
@@ -57,11 +63,6 @@ internal class MainApp
     private void Run()
     {
         _uiThread.Start();
-        _routine.MainLoop();
-    }
-
-    private void WhenWindowClosed()
-    {
-        _routine.Finish();
+        _routine.MainLoop(); // Blocking call. Exits due to routine.Finish() being called when the UI thread is about to terminate, see above.
     }
 }

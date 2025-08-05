@@ -1,21 +1,17 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
-        <RootNamespace>base_serial_sample_program</RootNamespace>
+        <RootNamespace>application_loop</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
-
-        <OutputType>WinExe</OutputType>
-        <Platforms>AnyCPU</Platforms>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <ProjectReference Include="..\decoder\decoder.csproj"/>
         <ProjectReference Include="..\extractor-gdi\extractor-gdi.csproj"/>
         <ProjectReference Include="..\extractor-openvr\extractor-openvr.csproj"/>
         <ProjectReference Include="..\tcode\tcode.csproj"/>
-        <ProjectReference Include="..\application-loop\application-loop.csproj"/>
-        <ProjectReference Include="..\ui-imgui\ui-imgui.csproj"/>
     </ItemGroup>
 </Project>

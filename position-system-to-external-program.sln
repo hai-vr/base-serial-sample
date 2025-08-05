@@ -12,6 +12,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "extractor-gdi", "extractor-
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "core", "core\core.csproj", "{197C6FEC-50D7-45B3-A75B-D65D67425529}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "application-loop", "application-loop\application-loop.csproj", "{EEEFFAE1-64D9-423B-A34E-34D7F760AB6A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ui-imgui", "ui-imgui\ui-imgui.csproj", "{A0FD514B-A045-459F-9E91-D3A32251259E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +46,13 @@ Global
 		{197C6FEC-50D7-45B3-A75B-D65D67425529}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{197C6FEC-50D7-45B3-A75B-D65D67425529}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{197C6FEC-50D7-45B3-A75B-D65D67425529}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EEEFFAE1-64D9-423B-A34E-34D7F760AB6A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EEEFFAE1-64D9-423B-A34E-34D7F760AB6A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EEEFFAE1-64D9-423B-A34E-34D7F760AB6A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EEEFFAE1-64D9-423B-A34E-34D7F760AB6A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A0FD514B-A045-459F-9E91-D3A32251259E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A0FD514B-A045-459F-9E91-D3A32251259E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A0FD514B-A045-459F-9E91-D3A32251259E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A0FD514B-A045-459F-9E91-D3A32251259E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
