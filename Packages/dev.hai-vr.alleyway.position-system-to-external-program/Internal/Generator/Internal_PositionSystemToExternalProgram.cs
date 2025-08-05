@@ -1,14 +1,17 @@
 ﻿#if IS_RESILIENCE_DEV
 using System;
 using System.Collections.Generic;
-using AnimatorAsCode.V1;
-using AnimatorAsCode.V1.VRC;
-using UnityEditor;
-using UnityEditor.Animations;
 using UnityEngine;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Constraint.Components;
 using Object = UnityEngine.Object;
+
+#if UNITY_EDITOR
+using AnimatorAsCode.V1;
+using AnimatorAsCode.V1.VRC;
+using UnityEditor;
+using UnityEditor.Animations;
+#endif
 
 namespace Internal.Generator
 {
@@ -41,6 +44,7 @@ namespace Internal.Generator
         public VRCPositionConstraint constraint_calibration_position;
         public VRCAimConstraint constraint_calibration_aim;
     }
+    
 #if UNITY_EDITOR
     [CustomEditor(typeof(Internal_PositionSystemToExternalProgram))]
     public class Internal_PositionSystemToExternalProgramEditor : Editor
