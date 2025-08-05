@@ -12,11 +12,34 @@ public class UiMainApplication
 {
     private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoResize;
     private const ImGuiWindowFlags WindowFlagsNoCollapse = WindowFlags | ImGuiWindowFlags.NoCollapse;
-    
-    private const string OpenSerialLabel = "Open serial";
-    private const string CloseSerialLabel = "Close serial";
+
     private const string AutoUpdateLabel = "Auto-update";
+    private const string CloseSerialLabel = "Close serial";
+    private const string DataLabel = "Data";
+    private const string DebugLabel = "Debug";
+    private const string ExtractorLabel = "Extractor";
+    private const string ExtractorPreferenceLabel = "Extractor Preference";
+    private const string HardwareLabel = "Hardware";
+    private const string InterpretedDataLabel = "Interpreted data";
+    private const string LightsLabel = "Lights";
+    private const string ModeLabel = "Mode";
+    private const string OpenVrLabel = "OpenVR";
+    private const string RefreshLabel = "Refresh";
+    private const string ResetToDefaultsExceptWindowNameLabel = "Reset to defaults (except Window name)";
+    private const string ResetToDefaultsLabel = "Reset to defaults";
+    private const string SpoutLabel = "Spout";
     private const string SubmitLabel = "Submit";
+    private const string UseRightEyeLabel = "Use right eye";
+    private const string WindowLabel = "Window";
+    private const string WindowNameLabel = "Window name";
+    
+    private const string MsgChecksumInvalid = "Checksum is failing";
+    private const string MsgChecksumOk = "Data is OK";
+    private const string MsgChecksumUnexpectedMajorVersion = "Unexpected major version";
+    private const string MsgChecksumUnexpectedVendor = "Unexpected vendor";
+    private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
+    private const string MsgOpenVrUnavailable = "OpenVR is not running.";
+    private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -85,7 +108,7 @@ public class UiMainApplication
             ImGui.EndCombo();
         }
         ImGui.SameLine();
-        if (ImGui.Button("Refresh"))
+        if (ImGui.Button(RefreshLabel))
         {
             UpdatePortNames();
         }
@@ -102,7 +125,8 @@ public class UiMainApplication
         else
         {
             ImGui.BeginDisabled(_selectedPortName == "");
-            if (ImGui.Button($"Connect to device on serial port {(_selectedPortName == "" ? "UNKNOWN" : _selectedPortName)}", new Vector2(ImGui.GetContentRegionAvail().X, 60)))
+            var port = (_selectedPortName == "" ? "UNKNOWN" : _selectedPortName);
+            if (ImGui.Button(string.Format(MsgConnectToDeviceOnSerialPort, port), new Vector2(ImGui.GetContentRegionAvail().X, 60)))
             {
                 _uiActions.ConnectSerial(_selectedPortName);
             }
@@ -111,11 +135,11 @@ public class UiMainApplication
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
-        _scrollManager.MakeTab("Extractor", () =>
+        _scrollManager.MakeTab(ExtractorLabel, () =>
         {
-            ImGui.SeparatorText("Extractor Preference");
+            ImGui.SeparatorText(ExtractorPreferenceLabel);
             var currentExtractor = (int)_config.extractorPreference;
-            if (ImGui.Combo("Mode", ref currentExtractor, _extractorNames, _extractorNames.Length))
+            if (ImGui.Combo(ModeLabel, ref currentExtractor, _extractorNames, _extractorNames.Length))
             {
                 _config.extractorPreference = (ExtractorConfig)currentExtractor;
                 anyChanged = true;
@@ -123,8 +147,8 @@ public class UiMainApplication
 
             if (_config.extractorPreference is ExtractorConfig.PrioritizeSpout or ExtractorConfig.UseSpoutIfVRRunning)
             {
-                ImGui.SeparatorText("Spout");
-                ImGui.Text("Spout is not yet available in this version of the software.");
+                ImGui.SeparatorText(SpoutLabel);
+                ImGui.Text(MsgSpoutUnavailable);
             }
             
             var anyCoordinateChanged = false;
@@ -132,16 +156,16 @@ public class UiMainApplication
             {
                 if (_config.extractorPreference == ExtractorConfig.PrioritizeVR && !isOpenVrRunning)
                 {
-                    ImGui.SeparatorText("OpenVR");
-                    ImGui.Text("OpenVR is not running.");
+                    ImGui.SeparatorText(OpenVrLabel);
+                    ImGui.Text(MsgOpenVrUnavailable);
                 }
-                ImGui.SeparatorText("Window");
+                ImGui.SeparatorText(WindowLabel);
                 anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset X", ref _config.windowCoordinates.x);
                 anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset Y", ref _config.windowCoordinates.y);
                 anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor X", ref _config.windowCoordinates.anchorX, 0f, 1f);
                 anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor Y", ref _config.windowCoordinates.anchorY, 0f, 1f);
-                anyCoordinateChanged |= ImGui.InputText("Window name", ref _config.windowName, 500);
-                if (ImGui.Button("Reset to defaults (except Window name)"))
+                anyCoordinateChanged |= ImGui.InputText(WindowNameLabel, ref _config.windowName, 500);
+                if (ImGui.Button(ResetToDefaultsExceptWindowNameLabel))
                 {
                     anyCoordinateChanged = true;
                     _config.SetWindowCoordinatesToDefault();
@@ -149,13 +173,13 @@ public class UiMainApplication
             }
             else
             {
-                ImGui.SeparatorText("OpenVR");
+                ImGui.SeparatorText(OpenVrLabel);
                 anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset X", ref _config.vrCoordinates.x);
                 anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset Y", ref _config.vrCoordinates.y);
                 anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor X", ref _config.vrCoordinates.anchorX, 0f, 1f);
                 anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor Y", ref _config.vrCoordinates.anchorY, 0f, 1f);
-                anyCoordinateChanged |= ImGui.Checkbox("Use right eye", ref _config.vrUseRightEye);
-                if (ImGui.Button("Reset to defaults"))
+                anyCoordinateChanged |= ImGui.Checkbox(UseRightEyeLabel, ref _config.vrUseRightEye);
+                if (ImGui.Button(ResetToDefaultsLabel))
                 {
                     anyCoordinateChanged = true;
                     _config.SetVrCoordinatesToDefault();
@@ -173,13 +197,13 @@ public class UiMainApplication
             if (extractedData.IsValid())
             {
                 var interpreted = _uiActions.InterpretedData();
-                ImGui.SeparatorText("Debug");
+                ImGui.SeparatorText(DebugLabel);
                 ImGui.Columns(2);
                 
-                ImGui.SeparatorText("Interpreted data");
+                ImGui.SeparatorText(InterpretedDataLabel);
                 InterpretedDebug(interpreted);
                 
-                ImGui.SeparatorText("Data");
+                ImGui.SeparatorText(DataLabel);
                 DrawSieve(16);
                 ImGui.NextColumn();
 
@@ -193,10 +217,10 @@ public class UiMainApplication
             
             ImGui.Columns(1);
         });
-        _scrollManager.MakeTab("Debug", () =>
+        _scrollManager.MakeTab(DebugLabel, () =>
         {
             ImGui.BeginTabBar("##tabs_debug");
-            _scrollManager.MakeTab("Lights", () =>
+            _scrollManager.MakeTab(LightsLabel, () =>
             {
                 var data = _uiActions.Data();
                 var interpreted = _uiActions.InterpretedData();
@@ -219,10 +243,10 @@ public class UiMainApplication
                 }
                 if (!valid) ImGui.PopStyleColor();
                 
-                ImGui.SeparatorText("Interpreted data");
+                ImGui.SeparatorText(InterpretedDataLabel);
                 InterpretedDebug(interpreted);
             });
-            _scrollManager.MakeTab("Data", () =>
+            _scrollManager.MakeTab(DataLabel, () =>
             {
                 var extractedData = _uiActions.ExtractedData();
                 if (extractedData.IsValid())
@@ -232,7 +256,7 @@ public class UiMainApplication
             });
             ImGui.EndTabBar();
         });
-        _scrollManager.MakeTab("Hardware", () =>
+        _scrollManager.MakeTab(HardwareLabel, () =>
         {
             ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
             ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
@@ -346,16 +370,16 @@ public class UiMainApplication
         switch (data.validity)
         {
             case DataValidity.Ok:
-                ImGui.Text("Data is OK");
+                ImGui.Text(MsgChecksumOk);
                 break;
             case DataValidity.InvalidChecksum:
-                ImGui.Text("Checksum is failing");
+                ImGui.Text(MsgChecksumInvalid);
                 break;
             case DataValidity.UnexpectedVendor:
-                ImGui.Text("Unexpected vendor");
+                ImGui.Text(MsgChecksumUnexpectedVendor);
                 break;
             case DataValidity.UnexpectedMajorVersion:
-                ImGui.Text("Unexpected major version");
+                ImGui.Text(MsgChecksumUnexpectedMajorVersion);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
