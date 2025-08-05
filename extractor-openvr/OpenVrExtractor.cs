@@ -208,7 +208,8 @@ public class OpenVrExtractor
                 var isPureBlackPixel = _colorDataB[iColor] == 0 && _colorDataB[iColor + 1] == 0 && _colorDataB[iColor + 2] == 0;
                 if (isPureBlackPixel)
                 {
-                    _colorDataB[iColor] = 255;
+                    _colorDataB[iColor + 1] = 255;
+                    _colorDataB[iColor + 2] = 255;
                 }
                 _colorDataB[iColor + 3] = 255;
             }
