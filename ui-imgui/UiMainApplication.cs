@@ -275,6 +275,10 @@ public class UiMainApplication
             }
             ImGui.EndDisabled();
         });
+        _scrollManager.MakeTab(VERSION.miniVersion, () =>
+        {
+            ImGui.Text($"Version: {VERSION.version}");
+        });
 
         ImGui.EndTabBar();
         

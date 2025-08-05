@@ -8,6 +8,8 @@
 
         <OutputType>WinExe</OutputType>
         <Platforms>AnyCPU</Platforms>
+        <AssemblyVersion>$(ASSEMBLY_VERSION)</AssemblyVersion>
+        <ApplicationIcon>favicon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
@@ -17,5 +19,11 @@
         <ProjectReference Include="..\tcode\tcode.csproj"/>
         <ProjectReference Include="..\application-loop\application-loop.csproj"/>
         <ProjectReference Include="..\ui-imgui\ui-imgui.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="favicon.ico">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>
