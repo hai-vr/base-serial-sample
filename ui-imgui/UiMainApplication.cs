@@ -204,6 +204,8 @@ public class UiMainApplication
                 InterpretedDebug(interpreted);
                 
                 ImGui.SeparatorText(DataLabel);
+                DrawSieve(16, 101);
+                ImGui.Text("");
                 DrawSieve(16);
                 ImGui.NextColumn();
 
@@ -325,7 +327,7 @@ public class UiMainApplication
         return b ? "true" : "false";
     }
 
-    private void DrawSieve(int numberOfColumns)
+    private void DrawSieve(int numberOfColumns, int startAtRow = 0)
     {
         var bits = _uiActions.Bits();
         var data = _uiActions.Data();
@@ -339,7 +341,7 @@ public class UiMainApplication
         var digitCount = (int)Math.Floor(Math.Log10(numberOfLines)) + 1;
         var format = new string('0', digitCount);
         
-        for (var row = 0; row < numberOfLines; row++)
+        for (var row = startAtRow; row < numberOfLines; row++)
         {
             ImGui.Text($"#{row.ToString(format)}  ");
             ImGui.SameLine();

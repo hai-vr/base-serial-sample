@@ -155,8 +155,8 @@ public class Routine
         var coordinates = isUsingVrExtractor ? VrCoordinates : WindowCoordinates;
         if (isUsingVrExtractor)
         {
-            // FIXME: Where does this magic constant even come from? Both ViveProEyeVerticalBase and 1/0.6f
-            var scale = (1 / 0.6f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
+            // FIXME: Where does this magic constant even come from? Both ViveProEyeVerticalBase and 1 / 0.5945f
+            var scale = (1 / 0.5945f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
             // var scale = 1600 / 1000f;
             
             coordinates.requestedWidth = (int)((_layout.numberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);

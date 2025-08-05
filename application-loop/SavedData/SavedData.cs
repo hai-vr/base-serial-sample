@@ -51,7 +51,7 @@ public class SavedData
         vrCoordinates.x = 0;
         vrCoordinates.y = 0;
         vrCoordinates.anchorX = 0f;
-        vrCoordinates.anchorY = 0.499f;
+        vrCoordinates.anchorY = 0.5f;
         vrUseRightEye = false;
     }
 
