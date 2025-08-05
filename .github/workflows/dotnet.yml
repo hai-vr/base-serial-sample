@@ -40,7 +40,37 @@ jobs:
       - name: Build
         shell: bash
         run: |
-          export ASSEMBLY_VERSION=${{ steps.version.outputs.prop }}
+          SEMVER_VERSION=${{ steps.version.outputs.prop }}
+          # Convert semver to assembly version format
+          # Extract the base version (everything before the first hyphen)
+          BASE_VERSION=$(echo "$SEMVER_VERSION" | cut -d'-' -f1)
+          
+          # If there's a pre-release part, extract it
+          if [[ "$SEMVER_VERSION" == *"-"* ]]; then
+            PRERELEASE=$(echo "$SEMVER_VERSION" | cut -d'-' -f2-)
+          
+            # Extract the numeric part from prerelease (e.g., "13" from "alpha.13")
+            PRERELEASE_NUM=$(echo "$PRERELEASE" | grep -o '[0-9]\+$' || echo "0")
+          
+            # Assign different ranges based on prerelease type
+            if [[ "$PRERELEASE" == alpha* ]]; then
+              # Alpha: use 1000-1999 range
+              REVISION=$((1000 + PRERELEASE_NUM))
+            elif [[ "$PRERELEASE" == beta* ]]; then
+              # Beta: use 2000-2999 range  
+              REVISION=$((2000 + PRERELEASE_NUM))
+            else
+              # Other prerelease types: use 9000+ range
+              REVISION=$((9000 + PRERELEASE_NUM))
+            fi
+          
+            export ASSEMBLY_VERSION="${BASE_VERSION}.${REVISION}"
+          else
+            # No pre-release, use .0 as revision (stable release)
+            export ASSEMBLY_VERSION="${BASE_VERSION}.0"
+          fi
+          
+          echo "Converting semver $SEMVER_VERSION to assembly version $ASSEMBLY_VERSION"
           dotnet publish ${{env.netCsProj}} --runtime "${{ matrix.target }}" -c Release -o "App/${{env.outputAppFolder}}"
 
       - name: Create Zip
