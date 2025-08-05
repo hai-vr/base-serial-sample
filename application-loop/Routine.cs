@@ -19,7 +19,7 @@ public class Routine
     private readonly OpenVrExtractor _ovrExtractor;
     private readonly WindowGdiExtractor _windowGdiExtractor;
     private readonly SavedData _config;
-    private readonly OversizedToBitsTransformer _toBits;
+    private readonly BitsTransformer _toBits;
     private readonly ExtractedDataDecoder _decoder;
     private readonly PositionSystemDataLayout _layout;
     private readonly DpsLightInterpreter _interpreter;
@@ -62,7 +62,7 @@ public class Routine
         OpenVrExtractor ovrExtractor,
         WindowGdiExtractor windowGdiExtractor,
         SavedData config,
-        OversizedToBitsTransformer toBits,
+        BitsTransformer toBits,
         ExtractedDataDecoder decoder,
         PositionSystemDataLayout layout,
         DpsLightInterpreter interpreter)
@@ -181,7 +181,7 @@ public class Routine
         if (ExtractedData.Success && _lastExtractionIteration != ExtractedData.Iteration)
         {
             _lastExtractionIteration = ExtractedData.Iteration;
-            Bits = _toBits.ExtractBitsFromSubregion(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
+            Bits = _toBits.ReadBitsFromExtractedImage(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
             _decoder.DecodeInto(Data, Bits);
 
             if (Data.validity == DataValidity.Ok)

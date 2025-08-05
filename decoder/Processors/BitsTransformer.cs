@@ -3,7 +3,7 @@
 namespace Hai.PositionSystemToExternalProgram.Processors;
 
 /// Given known shader settings, extract data contained within a larger texture (e.g. OpenVR mirror texture).
-public class OversizedToBitsTransformer
+public class BitsTransformer
 {
     // All brightness comparisons in the decoder should expect values that vary from what was set
     // in the shader, as there is still a possibility that transparency, post-processing, bloom, or other
@@ -13,21 +13,20 @@ public class OversizedToBitsTransformer
     private const int ColorValueThresholdForTruthness = 30;
 
     private readonly PositionSystemDataLayout _dataLayout;
-    private readonly int _shiftX;
-    private readonly int _shiftY;
     private readonly bool[] _data;
 
-    public OversizedToBitsTransformer(PositionSystemDataLayout dataLayout)
+    public BitsTransformer(PositionSystemDataLayout dataLayout)
     {
         _dataLayout = dataLayout;
-        _shiftX = dataLayout.EncodedSquareSize / 2;
-        _shiftY = dataLayout.EncodedSquareSize / 2;
 
         _data = new bool[ExtractedDataDecoder.GroupLength * 32];
     }
 
-    public bool[] ExtractBitsFromSubregion(byte[] monochromaticBytes, int width, int height)
+    public bool[] ReadBitsFromExtractedImage(byte[] monochromaticBytes, int width, int height)
     {
+        // The width and height are from the extracted image. This can depend on the vertical resolution of the HMD,
+        // so the width is NOT necessarily equal to EncodedSquareSize * (NumberOfColumns + MarginPerSide * 2)
+        
         var squareSize = _dataLayout.EncodedSquareSize;
         var actualInterSquareDistanceW = width / ((float)_dataLayout.numberOfColumns + _dataLayout.MarginPerSide * 2);
         var actualInterSquareDistanceH = height / ((float)_dataLayout.numberOfDataLines + _dataLayout.MarginPerSide * 2);
@@ -41,6 +40,8 @@ public class OversizedToBitsTransformer
             var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * actualInterSquareDistanceW);
             var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * actualInterSquareDistanceH);
 
+            // Calculate the average of the pixels.
+            // Sampling from just one pixel makes it too sensitive and hard to align.
             var sum = 0;
             var count = 0;
             for (var p = 0; p < squareSize; p++)

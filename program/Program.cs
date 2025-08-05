@@ -32,7 +32,7 @@ internal class MainApp
         var ovrExtractor = new OpenVrExtractor(ovrStarter);
         var windowGdiExtractor = new WindowGdiExtractor();
         var layout = new PositionSystemDataLayout();
-        var toBits = new OversizedToBitsTransformer(layout);
+        var toBits = new BitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
         var interpreter = new DpsLightInterpreter();
         
