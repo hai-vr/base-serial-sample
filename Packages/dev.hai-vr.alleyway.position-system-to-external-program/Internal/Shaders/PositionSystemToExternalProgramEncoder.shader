@@ -298,7 +298,7 @@ SOFTWARE.
             	
             	float serialize_numberOfLines = ceil((GROUP_LENGTH * 32.0) / SERIALIZE_NumberOfColumns);
             	
-				float nan = asfloat(-1);
+//				float nan = asfloat(-1);
 				
             	// We need black margins to avoid the main texture contaminating the neighbouring pixels too.
             	// Also, pixels shouldn't be pure white, because it will cause bloom to contaminate the neighbouring pixels.
@@ -309,11 +309,12 @@ SOFTWARE.
             	
             	if (i.uv.x < 0 || i.uv.x >= SERIALIZE_NumberOfColumns)
             	{
-            		return half4(nan, nan, nan, nan);
+            		// The -10000 prevents bloom. Negative values consume bloom, so it will always be a black pixel.
+            		return half4(-10000, -10000, -10000, 1);
             	}
             	else if (i.uv.y < 0 || i.uv.y >= serialize_numberOfLines)
             	{
-            		return half4(nan, nan, nan, nan);
+            		return half4(-10000, -10000, -10000, 1);
             	}
             	
                 float2 serialize = floor(i.uv);
@@ -331,7 +332,7 @@ SOFTWARE.
 					
 					uint result = NthBit(crc, group.x);
 					if (result) return half4(Grayness, 0, 0, 1);
-					else return half4(nan, nan, nan, nan);
+					else return half4(-10000, -10000, -10000, 1);
 				}
             	else
             	{
@@ -339,7 +340,7 @@ SOFTWARE.
 					
 					uint result = NthBit(data, group.x);
 					if (result) return half4(Grayness, 0, 0, 1);
-					else return half4(nan, nan, nan, nan);
+					else return half4(-10000, -10000, -10000, 1);
             	}
             }
             
