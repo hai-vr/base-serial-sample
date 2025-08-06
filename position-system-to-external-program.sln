@@ -16,7 +16,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "application-loop", "applica
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ui-imgui", "ui-imgui\ui-imgui.csproj", "{A0FD514B-A045-459F-9E91-D3A32251259E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "robotics-driver", "robotics-driver\robotics-driver.csproj", "{7F0AEAB7-2F72-4323-A228-7FE62E24A421}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "robotics", "robotics\robotics.csproj", "{7F0AEAB7-2F72-4323-A228-7FE62E24A421}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -12,7 +12,7 @@
         <ProjectReference Include="..\decoder\decoder.csproj"/>
         <ProjectReference Include="..\extractor-gdi\extractor-gdi.csproj"/>
         <ProjectReference Include="..\extractor-openvr\extractor-openvr.csproj"/>
-        <ProjectReference Include="..\robotics-driver\robotics-driver.csproj" />
+        <ProjectReference Include="..\robotics\robotics.csproj" />
         <ProjectReference Include="..\tcode\tcode.csproj"/>
     </ItemGroup>
 </Project>
