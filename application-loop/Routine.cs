@@ -193,6 +193,10 @@ public class Routine
                 InterpretedData = _interpreter.Interpret(Data);
                 _roboticsDriver.ProvideTargets(InterpretedData);
             }
+            else
+            {
+                _roboticsDriver.MarkDataFailure();
+            }
         }
 
         // TODO: Split image extraction logic update rate from robotics logic update rate.
@@ -221,7 +225,6 @@ public class Routine
 
     private int RemapTarget(float joystick)
     {
-        // TODO: This may be incorrect, we need 0 to 9999, but the serial controller will sanitize this.
         return (int)(5000 + joystick * 5000);
     }
 

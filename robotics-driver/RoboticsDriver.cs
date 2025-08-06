@@ -30,7 +30,16 @@ public class RoboticsDriver
 
     public void ProvideTargets(InterpretedLightData interpretedData)
     {
-        if (!interpretedData.hasTarget) return;
+        if (!interpretedData.hasTarget)
+        {
+            // TODO: If there is no target, we need to remember that, so that when a target appears,
+            // we don't immediately slam the robotic arm because the data has changed too much.
+            return;
+        }
+        
+        // TODO: Handle what happens when the target is way, way off the system.
+        // For instance we may have to consider using a PID controller in order to relativize the position,
+        // and only consider (0, 0, 0) as being a preferred position.
 
         _unsafeJoystickTargetL0 = RemapAndClamp(interpretedData.position.Y * _virtualScaleChange, 0f, 1f, -1f, 1f);
         _unsafeJoystickTargetL1 = RemapAndClamp(-interpretedData.position.Z * _virtualScaleChange, -0.5f, 0.5f, -1f, 1f);
@@ -51,15 +60,17 @@ public class RoboticsDriver
         }
     }
 
-    private static float NormalToDegrees(float normal)
+    public void MarkDataFailure()
     {
-        var angleRad = (float)Math.Asin(normal);
-        var angleDegrees = angleRad * 180f / (float)Math.PI;
-        return angleDegrees;
+        // Placeholder; then there may be a procedure to ensure that when data is recovered,
+        // we don't immediately slam the robotic arm because the data has changed too much.
     }
 
     public RoboticsCoordinates UpdateAndGetCoordinates(long deltaTimeMs)
     {
+        // TODO: Consider implementing a PID controller to track an alternative root,
+        // and another PID controller to handle data losses and act as a motion speed limiter.
+        
         return new RoboticsCoordinates
         {
             JoystickTargetL0 = _safeJoystickTargetL0,
@@ -71,14 +82,14 @@ public class RoboticsDriver
         };
     }
 
-    public static float Clamp(float value, float toMin, float toMax)
+    private static float Clamp(float value, float toMin, float toMax)
     {
         if (value < toMin) return toMin;
         if (value > toMax) return toMax;
         return value;
     }
 
-    public static float RemapAndClamp(float value, float fromMin, float fromMax, float toMin, float toMax)
+    private static float RemapAndClamp(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
         var vv = Math.Max(fromMin, Math.Min(fromMax, value));
         var normalizedValue = (vv - fromMin) / (fromMax - fromMin);
@@ -88,4 +99,10 @@ public class RoboticsDriver
         return result;
     }
 
+    private static float NormalToDegrees(float normal)
+    {
+        var angleRad = (float)Math.Asin(normal);
+        var angleDegrees = angleRad * 180f / (float)Math.PI;
+        return angleDegrees;
+    }
 }
