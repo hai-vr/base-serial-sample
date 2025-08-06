@@ -19,7 +19,7 @@ public class VERSION
         }
         else
         {
-            version = string.Format(CultureInfo.InvariantCulture, "v{0}.{1}.{2}", v.Major, v.Minor, v.Build);
+            version = string.Format(CultureInfo.InvariantCulture, "v{0}.{1}.{2}.{3}", v.Major, v.Minor, v.Build, v.Revision);
             miniVersion = version;
         }
     }
