@@ -46,6 +46,10 @@ Core projects:
 
 External system projects:
 - **extractor-gdi**, **extractor-openvr**, and **tcode** interact with various external system APIs.
+- **service-websockets** is only used if *Resonite* support is enabled; this skips lights altogether.
+
+Unity:
+- **Packages/dev.hai-vr.alleyway.position-system-to-external-program/** contains the shader and prefab.
 
 ### Data extraction procedure
 
@@ -57,6 +61,9 @@ Data extraction goes through this:
 
 ![DataExtraction.png](DataExtraction.png)
 
+If *Resonite* support is enabled, the position is submitted directly from a Websocket component within Resonite,
+rather than going through data extraction.
+
 ### Data
 
 Data is made out of sequential 32-bit groups; least significant bit first, little endian.
@@ -64,7 +71,7 @@ Data is made out of sequential 32-bit groups; least significant bit first, littl
 Data visually starts at the top-left of the region, scans horizontally up until the layout's width, then vertically.
 By default, the layout uses 16 columns, with a margin of 1 on every side.
 
-On window rendering, it is drawn at the top left. On VR rendering, it is drawn centered vertically, located against the left edge of the left eye.
+When rendered on a window, it is drawn at the top left. When rendered in VR, it is drawn centered vertically, located against the left edge of the left eye.
 The size of the squares in VR is a fixed proportion of the vertical resolution to counteract the *Resolution Per Eye* setting.
 
 By default, the shader outputs:
@@ -149,6 +156,48 @@ If the check fails, we reuse the last known valid data.
 The CRC-32 hash is based on groups 1 to 51 (inclusive). The data in 36 to 51 (inclusive) are not currently used.
 However, including them as part of the checksum ensures that it is not a breaking change to add a few additional pieces of
 new data in the shader for future versions.
+
+### Websockets as an alternative input system
+
+If *Resonite* support is enabled, we will expose a websocket on port **56247** at url `ws://localhost:56247/ws`.
+
+Send the following string to it that represents an interpreted position and normal:
+```text
+PositionSystemInterpreted PositionX PositionY PositionZ NormalX NormalY NormalZ
+```
+- *PositionX*, *PositionY*, *PositionZ* is the position in local space, where (0, 0, 0) is the bottommost center, and (0, 1, 0) is the uppermost center.
+- *NormalX*, *NormalY*, *NormalZ* is the direction, represented as a vector of length 1. It doesn't matter if you don't make it length 1, we will normalize it anyway.
+
+While you're at it, you can also submit the tangent, which can be useful to define the twist, but this is optional:
+```text
+PositionSystemInterpreted PositionX PositionY PositionZ NormalX NormalY NormalZ TangentX TangentY TangentZ
+```
+- *TangentX*, *TangentY*, *TangentZ* is the tangent (which is a vector perpendicular to the direction), represented as a vector of length 1. It doesn't matter if you don't make it length 1, we will normalize it anyway.
+  
+- TODO: Clarify the expected coordinate space.
+- TODO: Clarify where the direction should point to.
+
+Here is a short Python Jupyter notebook that sends a message to this service:
+```python
+#%%
+!pip install websockets nest_asyncio
+
+import asyncio
+import websockets
+import nest_asyncio
+
+# This allows asyncio to work properly in Jupyter
+nest_asyncio.apply()
+
+async def send_message():
+    uri = "ws://localhost:56247/ws"
+    async with websockets.connect(uri) as websocket:
+        message = "PositionSystemInterpreted 0.0 0.1 0.2 0.3 0.4 0.5"
+        await websocket.send(message)
+        print(f"Sent message: {message}")
+
+await send_message()
+```
 
 ### Third-party acknowledgements
 

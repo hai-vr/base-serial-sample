@@ -35,6 +35,26 @@ public class Routine
     public DecodedData Data { get; }
     public InterpretedLightData InterpretedData { get; private set; }
     
+    //
+    
+    private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
+    private readonly Stopwatch _globalStopwatch;
+    
+    private bool _exitRequested;
+    private double _nextStartOpenVrTime;
+    private int _lastExtractionIteration;
+    private long _lastRoboticsUpdate;
+    private bool _websocketStarted;
+
+    private bool _hasReceivedDirectLightData;
+    private InterpretedLightData _directLightData;
+    private int _directExtraction;
+
+    public event WebsocketStartRequested OnWebsocketStartRequested;
+    public delegate void WebsocketStartRequested(ushort port);
+    public event WebsocketStopRequested OnWebsocketStopRequested;
+    public delegate void WebsocketStopRequested();
+    
     public void RefreshExtractionConfiguration()
     {
         CopyCoordinates(_config.windowCoordinates, WindowCoordinates);
@@ -54,6 +74,21 @@ public class Routine
         );
     }
 
+    public void RefreshWebsocketsConfiguration()
+    {
+        if (_config.useResoniteWebsockets && !_websocketStarted)
+        {
+            _websocketStarted = true;
+            OnWebsocketStartRequested?.Invoke(IWebsocketActions.WebsocketDefaultPort);
+        }
+
+        if (!_config.useResoniteWebsockets && _websocketStarted)
+        {
+            _websocketStarted = false;
+            OnWebsocketStopRequested?.Invoke();
+        }
+    }
+
     private void CopyCoordinates(ConfigCoord from, ExtractionCoordinates to)
     {
         to.x = from.x;
@@ -61,15 +96,6 @@ public class Routine
         to.anchorX = from.anchorX;
         to.anchorY = from.anchorY;
     }
-
-    private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
-    private readonly Stopwatch _globalStopwatch;
-    
-    private bool _exitRequested;
-    private double _nextStartOpenVrTime;
-    private int _lastExtractionIteration;
-    
-    private long _lastRoboticsUpdate;
 
     public Routine(SavedData config,
         PositionSystemDataLayout layout,
@@ -109,9 +135,6 @@ public class Routine
         {
             Success = false
         };
-        
-        RefreshExtractionConfiguration();
-        RefreshRoboticsConfiguration();
     }
 
     public void Enqueue(Action action)
@@ -121,9 +144,20 @@ public class Routine
 
     public void MainLoop()
     {
+        // Don't do this in the constructor, as some of these configurations (the websocket one especially)
+        // needs to have events hooked beforehand. 
+        RefreshExtractionConfiguration();
+        RefreshRoboticsConfiguration();
+        RefreshWebsocketsConfiguration();
+        
         while (!_exitRequested)
         {
             Update();
+        }
+
+        if (_websocketStarted)
+        {
+            OnWebsocketStopRequested?.Invoke();
         }
     }
 
@@ -168,48 +202,61 @@ public class Routine
             }
         }
 
-        // We do the check again, as PollVrEvents may have shut OpenVR down.
-        var isUsingVrExtractor = IsUsingVrExtractor();
-        var coordinates = isUsingVrExtractor ? VrCoordinates : WindowCoordinates;
-        if (isUsingVrExtractor)
+        if (!_hasReceivedDirectLightData)
         {
-            // FIXME: Where does this magic constant even come from? Both ViveProEyeVerticalBase and 1 / 0.5945f
-            var scale = (1 / 0.5945f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
-            // var scale = 1600 / 1000f;
-            
-            coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
-            coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
-            var result = _ovrExtractor.Extract(VrCoordinates);
-            if (result.Success)
+            // We do the check again, as PollVrEvents may have shut OpenVR down.
+            var isUsingVrExtractor = IsUsingVrExtractor();
+            var coordinates = isUsingVrExtractor ? VrCoordinates : WindowCoordinates;
+            if (isUsingVrExtractor)
             {
-                ExtractedData = result;
+                // FIXME: Where does this magic constant even come from? Both ViveProEyeVerticalBase and 1 / 0.5945f
+                var scale = (1 / 0.5945f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
+                // var scale = 1600 / 1000f;
+            
+                coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
+                coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
+                var result = _ovrExtractor.Extract(VrCoordinates);
+                if (result.Success)
+                {
+                    ExtractedData = result;
+                }
+            }
+            else
+            {
+                coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
+                coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
+                var result = _windowGdiExtractor.Extract(WindowCoordinates);
+                if (result.Success)
+                {
+                    ExtractedData = result;
+                }
+            }
+
+            if (ExtractedData.Success && _lastExtractionIteration != ExtractedData.Iteration)
+            {
+                _lastExtractionIteration = ExtractedData.Iteration;
+                Bits = _toBits.ReadBitsFromExtractedImage(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
+                _decoder.DecodeInto(Data, Bits);
+
+                if (Data.validity == DataValidity.Ok)
+                {
+                    InterpretedData = _interpreter.Interpret(Data);
+                    _roboticsDriver.ProvideTargets(InterpretedData);
+                }
+                else
+                {
+                    _roboticsDriver.MarkDataFailure();
+                }
             }
         }
         else
         {
-            coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
-            coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
-            var result = _windowGdiExtractor.Extract(WindowCoordinates);
-            if (result.Success)
+            if (_lastExtractionIteration != _directExtraction)
             {
-                ExtractedData = result;
-            }
-        }
-
-        if (ExtractedData.Success && _lastExtractionIteration != ExtractedData.Iteration)
-        {
-            _lastExtractionIteration = ExtractedData.Iteration;
-            Bits = _toBits.ReadBitsFromExtractedImage(ExtractedData.MonochromaticData, coordinates.requestedWidth, coordinates.requestedHeight);
-            _decoder.DecodeInto(Data, Bits);
-
-            if (Data.validity == DataValidity.Ok)
-            {
-                InterpretedData = _interpreter.Interpret(Data);
+                _lastExtractionIteration = _directExtraction;
+                
+                InterpretedData = _directLightData;
                 _roboticsDriver.ProvideTargets(InterpretedData);
-            }
-            else
-            {
-                _roboticsDriver.MarkDataFailure();
             }
         }
 
@@ -263,6 +310,29 @@ public class Routine
     public bool IsSerialOpen()
     {
         return _serial.IsOpen;
+    }
+
+    public void ReceiveDirectControl(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ)
+    {
+        InternalDirectLightData(positionX, positionY, positionZ, normalX, normalY, normalZ);
+    }
+
+    public void ReceiveDirectControl(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ, float tangentX, float tangentY, float tangentZ)
+    {
+        InternalDirectLightData(positionX, positionY, positionZ, normalX, normalY, normalZ);
+    }
+
+    private void InternalDirectLightData(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ)
+    {
+        _hasReceivedDirectLightData = true;
+        _directLightData = new InterpretedLightData
+        {
+            position = new Vector3(positionX, positionY, positionZ),
+            normal = new Vector3(normalX, normalY, normalZ),
+            hasTarget = true,
+            hasNormal = true
+        };
+        _directExtraction++;
     }
 }
 

@@ -7,6 +7,7 @@ using Hai.PositionSystemToExternalProgram.Extractors.GDI;
 using Hai.PositionSystemToExternalProgram.Decoder;
 using Hai.PositionSystemToExternalProgram.ApplicationLoop;
 using Hai.PositionSystemToExternalProgram.Robotics;
+using Hai.PositionSystemToExternalProgram.Services.Websockets;
 
 namespace Hai.PositionSystemToExternalProgram.Program;
 
@@ -35,11 +36,17 @@ internal class MainApp
         var layout = new PositionSystemDataLayout();
         var toBits = new BitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
+        
         var interpreter = new DpsLightInterpreter();
         var roboticsDriver = new RoboticsDriver();
         
         // Core
         _routine = new Routine(config, layout, ovrStarter, ovrExtractor, windowGdiExtractor, toBits, decoder, interpreter, roboticsDriver, serial);
+        
+        // Misc
+        var resoniteWebsockets = new WebsocketsStarter(new WebsocketActions(_routine));
+        _routine.OnWebsocketStartRequested += resoniteWebsockets.Start;
+        _routine.OnWebsocketStopRequested += resoniteWebsockets.Stop;
         
         // UI
         _uiMain = new UiMainApplication(new UiActions(_routine), config);

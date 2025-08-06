@@ -243,6 +243,14 @@ public class UiMainApplication
             }
             
             ImGui.Columns(1);
+            
+            ImGui.SeparatorText("Resonite Websockets");
+            var websocketChanged = ImGui.Checkbox($"Export websockets on port {IWebsocketActions.WebsocketDefaultPort}", ref _config.useResoniteWebsockets);
+            if (websocketChanged)
+            {
+                _uiActions.ConfigWebsocketsUpdated();
+            }
+            anyChanged |= websocketChanged;
         });
         _scrollManager.MakeTab(DebugLabel, () =>
         {

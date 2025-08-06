@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ui-imgui", "ui-imgui\ui-img
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "robotics", "robotics\robotics.csproj", "{7F0AEAB7-2F72-4323-A228-7FE62E24A421}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClassLibrary1", "..\service-websockets\ClassLibrary1\ClassLibrary1.csproj", "{9CE83757-129C-4DED-B5D8-A0E2FC249717}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "service-websockets", "service-websockets\service-websockets.csproj", "{CDE788F4-9466-46D2-8D3B-DC9683A63EB9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +64,13 @@ Global
 		{7F0AEAB7-2F72-4323-A228-7FE62E24A421}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7F0AEAB7-2F72-4323-A228-7FE62E24A421}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7F0AEAB7-2F72-4323-A228-7FE62E24A421}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CE83757-129C-4DED-B5D8-A0E2FC249717}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CE83757-129C-4DED-B5D8-A0E2FC249717}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CE83757-129C-4DED-B5D8-A0E2FC249717}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CE83757-129C-4DED-B5D8-A0E2FC249717}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CDE788F4-9466-46D2-8D3B-DC9683A63EB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CDE788F4-9466-46D2-8D3B-DC9683A63EB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CDE788F4-9466-46D2-8D3B-DC9683A63EB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CDE788F4-9466-46D2-8D3B-DC9683A63EB9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

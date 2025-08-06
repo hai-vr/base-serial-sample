@@ -32,6 +32,8 @@ public class SavedData
     public bool roboticsUsePidTarget = false;
     public bool roboticsSafetyUsePolarMode = true;
 
+    public bool useResoniteWebsockets = false;
+
     public void SetWindowCoordinatesToDefault()
     {
         windowCoordinates.x = 8;

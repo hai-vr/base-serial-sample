@@ -19,6 +19,7 @@
         <ProjectReference Include="..\extractor-gdi\extractor-gdi.csproj"/>
         <ProjectReference Include="..\extractor-openvr\extractor-openvr.csproj"/>
         <ProjectReference Include="..\robotics\robotics.csproj" />
+        <ProjectReference Include="..\service-websockets\service-websockets.csproj" />
         <ProjectReference Include="..\tcode\tcode.csproj"/>
         <ProjectReference Include="..\application-loop\application-loop.csproj"/>
         <ProjectReference Include="..\ui-imgui\ui-imgui.csproj"/>

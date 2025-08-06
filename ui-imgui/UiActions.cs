@@ -8,6 +8,7 @@ public class UiActions
     private readonly Routine _routine;
     private bool _configCoordinatesUpdated;
     private bool _configRoboticsUpdated;
+    private bool _configWebsocketsUpdated;
 
     public UiActions(Routine routine)
     {
@@ -70,6 +71,18 @@ public class UiActions
 
             _routine.RefreshRoboticsConfiguration();
             _configRoboticsUpdated = false;
+        });
+    }
+
+    public void ConfigWebsocketsUpdated()
+    {
+        _configWebsocketsUpdated = true;
+        _routine.Enqueue(() =>
+        {
+            if (!_configWebsocketsUpdated) return;
+
+            _routine.RefreshWebsocketsConfiguration();
+            _configWebsocketsUpdated = false;
         });
     }
 }
