@@ -6,13 +6,18 @@ namespace Hai.PositionSystemToExternalProgram.Robotics;
 
 public class RoboticsDriver
 {
-    private float _configPolarModeBottommostRadius = 0.4f;
-    private float _configPolarModeUppermostRadius = 1f;
     private float _configVirtualScaleChange = 1f;
-    private bool _configSafetyUsePolarMode = false;
-    private float _configDistanceBeyondWhichInputsAreIgnored = 3f;
+    
     private bool _configUsePidRoot = true;
     private bool _configUsePidTarget = false;
+    
+    private float _configSafetyDistanceBeyondWhichInputsAreIgnored = 3f;
+    
+    private bool _configSafetyUsePolarMode = false;
+    private float _configSafetyPolarModeUppermostRadius = 1f;
+    private float _configSafetyPolarModeBottommostRadius = 0.4f;
+    
+    //
 
     private float _unsafeJoystickTargetL0;
     private float _unsafeJoystickTargetL1;
@@ -84,7 +89,7 @@ public class RoboticsDriver
             var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
             var unclampedVectorUntouched = new Vector3(unclampedL0, unclampedL1, unclampedL2);
             
-            // Optionally use a PID integrator to stabilize the root as an error.
+            // Optionally, use a PID controller to stabilize the root.
             Vector3 unclampedVector;
             if (_configUsePidRoot)
             {
@@ -97,7 +102,8 @@ public class RoboticsDriver
                 unclampedVector = unclampedVectorUntouched;
             }
             
-            if (unclampedVector.Length() <= _configDistanceBeyondWhichInputsAreIgnored)
+            // If we use the root PID controller, the length does not matter because it will readjust anyway.
+            if (_configUsePidRoot || unclampedVector.Length() <= _configSafetyDistanceBeyondWhichInputsAreIgnored)
             {
                 _unsafeJoystickTargetL0 = Clamp(unclampedVector.X, -1f, 1f);
                 _unsafeJoystickTargetL1 = Clamp(unclampedVector.Y, -1f, 1f);
@@ -121,7 +127,7 @@ public class RoboticsDriver
             // When the Safety Polar mode is enabled, we clamp the Y and Z axis to be within a disc.
             // If the length on (Y, Z) is greater than the allowed radius, we clamp it to that radius. 
             
-            var allowedRadius = RemapAndClamp(_unsafeVerticality, 0f, 1f, _configPolarModeBottommostRadius, _configPolarModeUppermostRadius);
+            var allowedRadius = RemapAndClamp(_unsafeVerticality, 0f, 1f, _configSafetyPolarModeBottommostRadius, _configSafetyPolarModeUppermostRadius);
             var radial = new Vector3(0, _unsafeJoystickTargetL1, _unsafeJoystickTargetL2);
             if (radial.Length() > allowedRadius) radial = Vector3.Normalize(radial) * allowedRadius;
             
