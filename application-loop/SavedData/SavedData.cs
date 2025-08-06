@@ -19,17 +19,6 @@ public class SavedData
     private static string Main => Path.Combine(SaveUtil.GetUserDataFolder(), MainFilename);
     private static string Backup => Path.Combine(SaveUtil.GetUserDataFolder(), BackupFilename);
 
-    public int offsetX = 9;
-    public int offsetY = 656;
-    [JsonIgnore] public bool manualControl;
-    public float positionMultiplier = 4f;
-    public float rotationMultiplier = 2f;
-    public float positionMultiplierL0 = 1f;
-    public float positionMultiplierL1 = 1f;
-    public float positionMultiplierL2 = 1f;
-    public float rotationMultiplierL0 = 1f;
-    public float rotationMultiplierL1 = 1f;
-    public float rotationMultiplierL2 = 1f;
     public string windowName = "VR";
 
     public ExtractorConfig extractorPreference = ExtractorConfig.PrioritizeVR;
