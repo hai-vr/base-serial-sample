@@ -44,6 +44,7 @@ public class UiMainApplication
     private const string CommandLabel = "Command";
     private const string SafetySettingsLabel = "Safety settings";
     private const string VirtualScaleLabel = "Virtual scale";
+    private const string MsgDataNotInitialized = "Data not initialized";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -428,6 +429,9 @@ public class UiMainApplication
         ImGui.PushStyleColor(ImGuiCol.Text, !valid ? new Vector4(1, 0, 0, 1) : new Vector4(0, 1, 1, 1));
         switch (data.validity)
         {
+            case DataValidity.NotInitialized:
+                ImGui.Text(MsgDataNotInitialized);
+                break;
             case DataValidity.Ok:
                 ImGui.Text(MsgChecksumOk);
                 break;

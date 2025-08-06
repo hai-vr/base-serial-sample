@@ -94,7 +94,10 @@ public class Routine
         _roboticsDriver = roboticsDriver;
 
         RawSerialData = new TcodeData();
-        Data = new DecodedData();
+        Data = new DecodedData
+        {
+            validity = DataValidity.NotInitialized
+        };
 
         _ovrStarter.OnExited += () => Enqueue(() =>
         {
