@@ -28,15 +28,15 @@ public class BitsTransformer
         // so the width is NOT necessarily equal to EncodedSquareSize * (NumberOfColumns + MarginPerSide * 2)
         
         var squareSize = _dataLayout.EncodedSquareSize;
-        var actualInterSquareDistanceW = width / ((float)_dataLayout.numberOfColumns + _dataLayout.MarginPerSide * 2);
-        var actualInterSquareDistanceH = height / ((float)_dataLayout.numberOfDataLines + _dataLayout.MarginPerSide * 2);
+        var actualInterSquareDistanceW = width / ((float)_dataLayout.NumberOfColumns + _dataLayout.MarginPerSide * 2);
+        var actualInterSquareDistanceH = height / ((float)_dataLayout.NumberOfDataLines + _dataLayout.MarginPerSide * 2);
         var interPixelDistanceW = actualInterSquareDistanceW / squareSize;
         var interPixelDistanceH = actualInterSquareDistanceH / squareSize;
         
         for (var i = 0; i < _data.Length; i++)
         {
-            var column = i % _dataLayout.numberOfColumns;
-            var line = i / _dataLayout.numberOfColumns;
+            var column = i % _dataLayout.NumberOfColumns;
+            var line = i / _dataLayout.NumberOfColumns;
             var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * actualInterSquareDistanceW);
             var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * actualInterSquareDistanceH);
 

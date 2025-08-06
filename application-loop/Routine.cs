@@ -163,8 +163,8 @@ public class Routine
             var scale = (1 / 0.5945f) * (_ovrExtractor.VerticalResolution(coordinates.source) / (float)ViveProEyeVerticalBase);
             // var scale = 1600 / 1000f;
             
-            coordinates.requestedWidth = (int)((_layout.numberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
-            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
+            coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
+            coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize * scale);
             var result = _ovrExtractor.Extract(VrCoordinates);
             if (result.Success)
             {
@@ -173,8 +173,8 @@ public class Routine
         }
         else
         {
-            coordinates.requestedWidth = (int)((_layout.numberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
-            coordinates.requestedHeight = (int)((_layout.numberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
+            coordinates.requestedWidth = (int)((_layout.NumberOfColumns + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
+            coordinates.requestedHeight = (int)((_layout.NumberOfDataLines + _layout.MarginPerSide * 2) * _layout.EncodedSquareSize);
             var result = _windowGdiExtractor.Extract(WindowCoordinates);
             if (result.Success)
             {
