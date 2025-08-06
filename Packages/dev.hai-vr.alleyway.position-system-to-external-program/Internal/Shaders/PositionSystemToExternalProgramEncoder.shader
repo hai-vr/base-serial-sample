@@ -10,10 +10,6 @@ Shader "Hai/PositionSystemToExternalProgram"
 {
     Properties
     {
-        _MainTex ("Texture", 2D) = "white" {}
-    	//_OverrideDrawToPos("Draw in Absolute Position", Float) = 0.0
-        //_DrawScreenPosX("Draw Screen Pos X", Float) = 0.0
-        //_DrawScreenPosY("Draw Screen Pos Y", Float) = 0.0
     	_EncodedSquareSize("Encoded Square Size", Float) = 4.0
     	_IsTestScript("Force draw in test script", Float) = 0.0
     }
@@ -48,14 +44,8 @@ Shader "Hai/PositionSystemToExternalProgram"
                 float4 color : COLOR;
             };
 
-            //float _OverrideDrawToPos;
-            //float _DrawScreenPosX;
-            //float _DrawScreenPosY;
             float _EncodedSquareSize;
             float _IsTestScript;
-
-            sampler2D _MainTex;
-            float4 _MainTex_ST;
             
             uniform float _VRChatMirrorMode;
             uniform float _VRChatCameraMode;
@@ -137,7 +127,7 @@ SOFTWARE.
             static const int attenDataSize = 4;
             static const int canaryDataSize = 1;
             
-			static const float Grayness = 0.5;
+			static const float GrayLevel = 0.5;
             
 			static const int SERIALIZE_NumberOfColumns = 16;
 			static const int MARGIN = 1;
@@ -244,7 +234,6 @@ SOFTWARE.
 
 #if defined(USING_STEREO_MATRICES)
             	float yShift = 0.5;
-//                float relativeY2 = _ScreenParams.y / (2740 * 0.75);
                 float relativeY2 = _ScreenParams.y / 1000;
 #else
             	float yShift = 0.0;
@@ -273,8 +262,6 @@ SOFTWARE.
             
             fixed4 frag(v2f i) : SV_Target
             {
-            	// return half4(0, 1, 0, 1);
-            	
 				#if defined(USING_STEREO_MATRICES)
 				// ^^ IsVR?
             		if (isRightEye())
@@ -285,11 +272,7 @@ SOFTWARE.
             	
 				#else
 				// ^^ IsNotVR?
-				// FIXME: This is old code for camera stacking. We need to change it so that it only outputs to desktop,
-				// or streaming camera, but not photos
-//            		if (_ProjectionParams.y != -4 && _IsTestScript < 0.5)
             		if (
-            			//!(abs(UNITY_MATRIX_V[0].y) < 0.0000005) // isDesktop (this didn't seem to work, we have to try to find a proper detection again later for the desktop main camera)
             			_VRChatCameraMode != 1 // Is VR handheld camera
             			&& _ScreenParams.x == _ScreenParams.y // Wild guess: The cameras we want to render to are almost never square
             			)
@@ -307,8 +290,6 @@ SOFTWARE.
             	
             	float serialize_numberOfLines = ceil((GROUP_LENGTH * 32.0) / SERIALIZE_NumberOfColumns);
             	
-//				float nan = asfloat(-1);
-				
             	// We need black margins to avoid the main texture contaminating the neighbouring pixels too.
             	// Also, pixels shouldn't be pure white, because it will cause bloom to contaminate the neighbouring pixels.
 
@@ -340,7 +321,7 @@ SOFTWARE.
             		crc = crc ^ 0xFFFFFFFFu;
 					
 					uint result = NthBit(crc, group.x);
-					if (result) return half4(Grayness, 0, 0, 1);
+					if (result) return half4(GrayLevel, 0, 0, 1);
 					else return half4(-10000, -10000, -10000, 1);
 				}
             	else
@@ -348,7 +329,7 @@ SOFTWARE.
             		uint data = getData(group.y);
 					
 					uint result = NthBit(data, group.x);
-					if (result) return half4(Grayness, 0, 0, 1);
+					if (result) return half4(GrayLevel, 0, 0, 1);
 					else return half4(-10000, -10000, -10000, 1);
             	}
             }
