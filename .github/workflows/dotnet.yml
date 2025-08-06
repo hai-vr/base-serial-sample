@@ -9,10 +9,11 @@ on:
   workflow_dispatch:
 
 env:
-  outputAppFolder: "PositionSystemToExternalProgram~" ## The tilde at the end is so that Unity doesn't scan the folder to create .meta files
+  outputAppFolder: "PositionSystemToExternalProgram"
   netProject: "program"
   netCsProj: "program/program.csproj"
   packageName: "dev.hai-vr.alleyway.position-system-to-external-program"
+  applicationName: "position-system"
 
 permissions:
   contents: write
@@ -85,7 +86,7 @@ jobs:
         with:
           type: "zip"
           directory: "App/"
-          filename: "../${{ env.packageName }}-${{ steps.version.outputs.prop }}-executable.zip"
+          filename: "../${{ env.applicationName }}-${{ steps.version.outputs.prop }}-executable.zip"
 
       - name: Make Release
         uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5
@@ -94,4 +95,4 @@ jobs:
           files: |
             ${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip
             Packages/${{ env.packageName }}/package.json
-            ${{ env.packageName }}-${{ steps.version.outputs.prop }}-executable.zip
+            ${{ env.applicationName }}-${{ steps.version.outputs.prop }}-executable.zip
