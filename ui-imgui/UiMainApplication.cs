@@ -41,6 +41,11 @@ public class UiMainApplication
     private const string MsgOpenVrUnavailable = "OpenVR is not running.";
     private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
     private const string RoboticsConfigurationLabel = "Robotics configuration";
+    private const string DataCalibrationLabel = "Data calibration";
+    private const string RoboticsLabel = "Robotics";
+    private const string CommandLabel = "Command";
+    private const string SafetySettingsLabel = "Safety settings";
+    private const string VirtualScaleLabel = "Virtual scale";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -136,10 +141,27 @@ public class UiMainApplication
         }
         
         ShowDataWarningIfApplicable(data);
+        if (data.validity == DataValidity.Ok)
+        {
+            var interpreted = _uiActions.InterpretedData();
+            if (interpreted.hasTarget)
+            {
+                ImGui.SameLine();
+                ImGui.Text("- Light found");
+            }
+            else
+            {
+                ImGui.SameLine();
+                ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(0.5f, 0.5f, 0.5f, 1));
+                ImGui.Text("- Light not found");
+                ImGui.PopStyleColor();
+            }
+        }
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
-        _scrollManager.MakeTab(ExtractorLabel, () =>
+        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged = RoboticsTab(); });
+        _scrollManager.MakeTab(DataCalibrationLabel, () =>
         {
             ImGui.SeparatorText(ExtractorPreferenceLabel);
             var currentExtractor = (int)_config.extractorPreference;
@@ -261,10 +283,12 @@ public class UiMainApplication
             });
             ImGui.EndTabBar();
         });
-        _scrollManager.MakeTab(HardwareLabel, () =>
+        
+        bool RoboticsTab()
         {
-            ImGui.SeparatorText(RoboticsConfigurationLabel);
             var anyRoboticsConfigurationChanged = false;
+            
+            ImGui.SeparatorText(VirtualScaleLabel);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
@@ -273,16 +297,23 @@ public class UiMainApplication
                 _config.roboticsVirtualScale = 1f;
                 anyRoboticsConfigurationChanged = true;
             }
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (root PID controller)", ref _config.roboticsUsePidRoot);
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (target PID controller)", ref _config.roboticsUsePidTarget);
             
-            ImGui.SeparatorText("Safety settings");
+            ImGui.NewLine();
+            ImGui.SeparatorText(RoboticsConfigurationLabel);
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (Root PID controller)", ref _config.roboticsUsePidRoot);
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
+            
+            ImGui.NewLine();
+            ImGui.SeparatorText(SafetySettingsLabel);
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Limit movement within a circle", ref _config.roboticsSafetyUsePolarMode);
+
+            if (anyRoboticsConfigurationChanged)
+            {
+                _uiActions.ConfigRoboticsUpdated();
+            }
             
-            anyChanged |= anyRoboticsConfigurationChanged;
-            _uiActions.ConfigRoboticsUpdated();
-            
-            ImGui.SeparatorText("Command");
+            ImGui.NewLine();
+            ImGui.SeparatorText(CommandLabel);
             ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
             ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
             ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);
@@ -297,7 +328,8 @@ public class UiMainApplication
                 _uiActions.Submit();
             }
             ImGui.EndDisabled();
-        });
+            return anyRoboticsConfigurationChanged;
+        }
         _scrollManager.MakeTab(VERSION.miniVersion, () =>
         {
             ImGui.Text($"Version: {VERSION.version}");
@@ -395,7 +427,7 @@ public class UiMainApplication
     private static void ShowDataWarningIfApplicable(DecodedData data)
     {
         var valid = data.validity == DataValidity.Ok;
-        if (!valid) ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 0, 1));
+        ImGui.PushStyleColor(ImGuiCol.Text, !valid ? new Vector4(1, 0, 0, 1) : new Vector4(0, 1, 1, 1));
         switch (data.validity)
         {
             case DataValidity.Ok:
@@ -413,7 +445,7 @@ public class UiMainApplication
             default:
                 throw new ArgumentOutOfRangeException();
         }
-        if (!valid) ImGui.PopStyleColor();
+        ImGui.PopStyleColor();
     }
 
     private IntPtr TurnDataIntoTexture(CustomImGuiController controller, ExtractionResult extractedData)
