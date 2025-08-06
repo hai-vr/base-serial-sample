@@ -40,6 +40,7 @@ public class UiMainApplication
     private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
     private const string MsgOpenVrUnavailable = "OpenVR is not running.";
     private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
+    private const string RoboticsConfigurationLabel = "Robotics configuration";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -87,6 +88,7 @@ public class UiMainApplication
         var rawData = _uiActions.ExposeRawData();
         var isSerialOpen = _uiActions.IsSerialOpen();
         var isOpenVrRunning = _uiActions.IsOpenVrRunning();
+        var data = _uiActions.Data();
         
         ImGui.BeginDisabled(isSerialOpen);
         if (ImGui.BeginCombo("##PortCombo", _selectedPortName))
@@ -132,6 +134,8 @@ public class UiMainApplication
             }
             ImGui.EndDisabled();
         }
+        
+        ShowDataWarningIfApplicable(data);
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
@@ -224,7 +228,6 @@ public class UiMainApplication
             ImGui.BeginTabBar("##tabs_debug");
             _scrollManager.MakeTab(LightsLabel, () =>
             {
-                var data = _uiActions.Data();
                 var interpreted = _uiActions.InterpretedData();
                 var valid = data.validity == DataValidity.Ok;
         
@@ -260,6 +263,26 @@ public class UiMainApplication
         });
         _scrollManager.MakeTab(HardwareLabel, () =>
         {
+            ImGui.SeparatorText(RoboticsConfigurationLabel);
+            var anyRoboticsConfigurationChanged = false;
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
+            if (ImGui.Button("Reset virtual scale"))
+            {
+                _config.roboticsVirtualScale = 1f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (root PID controller)", ref _config.roboticsUsePidRoot);
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (target PID controller)", ref _config.roboticsUsePidTarget);
+            
+            ImGui.SeparatorText("Safety settings");
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Limit movement within a circle", ref _config.roboticsSafetyUsePolarMode);
+            
+            anyChanged |= anyRoboticsConfigurationChanged;
+            _uiActions.ConfigRoboticsUpdated();
+            
+            ImGui.SeparatorText("Command");
             ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
             ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
             ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);

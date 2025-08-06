@@ -7,6 +7,7 @@ public class UiActions
 {
     private readonly Routine _routine;
     private bool _configCoordinatesUpdated;
+    private bool _configRoboticsUpdated;
 
     public UiActions(Routine routine)
     {
@@ -55,7 +56,18 @@ public class UiActions
         {
             if (!_configCoordinatesUpdated) return;
 
-            _routine.RefreshConfiguration();
+            _routine.RefreshExtractionConfiguration();
+        });
+    }
+
+    public void ConfigRoboticsUpdated()
+    {
+        _configRoboticsUpdated = true;
+        _routine.Enqueue(() =>
+        {
+            if (!_configRoboticsUpdated) return;
+
+            _routine.RefreshRoboticsConfiguration();
         });
     }
 }

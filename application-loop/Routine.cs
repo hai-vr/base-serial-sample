@@ -35,13 +35,23 @@ public class Routine
     public DecodedData Data { get; }
     public InterpretedLightData InterpretedData { get; private set; }
     
-    public void RefreshConfiguration()
+    public void RefreshExtractionConfiguration()
     {
         CopyCoordinates(_config.windowCoordinates, WindowCoordinates);
         CopyCoordinates(_config.vrCoordinates, VrCoordinates);
         
         _windowGdiExtractor.desiredWindowName = _config.windowName;
         VrCoordinates.source = _config.vrUseRightEye ? ExtractionSource.RightEye : ExtractionSource.LeftEye;
+    }
+    
+    public void RefreshRoboticsConfiguration()
+    {
+        _roboticsDriver.UpdateConfiguration(
+            configRoboticsVirtualScale: _config.roboticsVirtualScale,
+            configRoboticsSafetyUsePolarMode: _config.roboticsSafetyUsePolarMode,
+            configRoboticsUsePidRoot: _config.roboticsUsePidRoot,
+            configRoboticsUsePidTarget: _config.roboticsUsePidTarget
+        );
     }
 
     private void CopyCoordinates(ConfigCoord from, ExtractionCoordinates to)
@@ -97,7 +107,8 @@ public class Routine
             Success = false
         };
         
-        RefreshConfiguration();
+        RefreshExtractionConfiguration();
+        RefreshRoboticsConfiguration();
     }
 
     public void Enqueue(Action action)

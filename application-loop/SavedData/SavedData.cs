@@ -26,6 +26,11 @@ public class SavedData
     public ConfigCoord windowCoordinates = new ConfigCoord();
     public ConfigCoord vrCoordinates = new ConfigCoord();
     public bool vrUseRightEye = false;
+    
+    public float roboticsVirtualScale = 1f;
+    public bool roboticsUsePidRoot = false;
+    public bool roboticsUsePidTarget = false;
+    public bool roboticsSafetyUsePolarMode = true;
 
     public void SetWindowCoordinatesToDefault()
     {

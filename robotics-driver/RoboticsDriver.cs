@@ -6,14 +6,14 @@ namespace Hai.PositionSystemToExternalProgram.Robotics;
 
 public class RoboticsDriver
 {
-    private float _configVirtualScaleChange = 1f;
+    private float _configVirtualScale = 1f;
     
-    private bool _configUsePidRoot = true;
+    private bool _configUsePidRoot = false;
     private bool _configUsePidTarget = false;
     
     private float _configSafetyDistanceBeyondWhichInputsAreIgnored = 3f;
     
-    private bool _configSafetyUsePolarMode = false;
+    private bool _configSafetyUsePolarMode = true;
     private float _configSafetyPolarModeUppermostRadius = 1f;
     private float _configSafetyPolarModeBottommostRadius = 0.4f;
     
@@ -54,9 +54,9 @@ public class RoboticsDriver
         // TODO: We need to those PID controllers.
         _rootPositionPid = new PidControllerVector3
         {
-            proportionalGain = 0.001f,
-            integralGain = 0.1f,
-            derivativeGain = 0f,
+            proportionalGain = 0.003f,
+            integralGain = 0.003f,
+            derivativeGain = 0.01f,
             integralMaximumMagnitude = 0.1f
         };
         _postTransitionalPid = new PidControllerVector3
@@ -84,9 +84,9 @@ public class RoboticsDriver
             // and only consider (0, 0, 0) as being a preferred position.
 
             // Confine the input light position to a centered box and make it match the robotics coordinate system.
-            var unclampedL0 = Remap(interpretedData.position.Y / _configVirtualScaleChange, 0f, 1f, -1f, 1f);
-            var unclampedL1 = Remap(-interpretedData.position.Z / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
-            var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
+            var unclampedL0 = Remap(interpretedData.position.Y / _configVirtualScale, 0f, 1f, -1f, 1f);
+            var unclampedL1 = Remap(-interpretedData.position.Z / _configVirtualScale, -0.5f, 0.5f, -1f, 1f);
+            var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScale, -0.5f, 0.5f, -1f, 1f);
             var unclampedVectorUntouched = new Vector3(unclampedL0, unclampedL1, unclampedL2);
             
             // Optionally, use a PID controller to stabilize the root.
@@ -95,7 +95,6 @@ public class RoboticsDriver
             {
                 _pidRootTarget = unclampedVectorUntouched;
                 unclampedVector = unclampedVectorUntouched - _pidRootCurrent;
-                Console.WriteLine(_pidRootCurrent);
             }
             else
             {
@@ -222,5 +221,13 @@ public class RoboticsDriver
         var angleRad = (float)Math.Asin(normal);
         var angleDegrees = angleRad * 180f / (float)Math.PI;
         return angleDegrees;
+    }
+
+    public void UpdateConfiguration(float configRoboticsVirtualScale, bool configRoboticsSafetyUsePolarMode, bool configRoboticsUsePidRoot, bool configRoboticsUsePidTarget)
+    {
+        _configVirtualScale = configRoboticsVirtualScale;
+        _configSafetyUsePolarMode = configRoboticsSafetyUsePolarMode;
+        _configUsePidRoot = configRoboticsUsePidRoot;
+        _configUsePidTarget = configRoboticsUsePidTarget;
     }
 }
