@@ -144,6 +144,12 @@ public class OpenVrExtractor
         var eyeResource = coordinates.source == ExtractionSource.RightEye ? _right : _left;
         
         var rect = coordinates.ToRectangle(eyeResource.desc2d.Width, eyeResource.desc2d.Height);
+        
+        // TODO: This is a dirty fix for a crash. What we probably need to do is clamp the box
+        // and copy the subregion but shifted.
+        if (rect.X < 0) rect.X = 0;
+        if (rect.Y < 0) rect.Y = 0;
+        
         var back = 1; // The back value must be 1. If it's 0, it will only output a black texture.
         var box = new Box(rect.X, rect.Y, 0, rect.X + rect.Width, rect.Y + rect.Height, back);
         
