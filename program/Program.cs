@@ -6,6 +6,7 @@ using Hai.PositionSystemToExternalProgram.Tcode;
 using Hai.PositionSystemToExternalProgram.Extractors.GDI;
 using Hai.PositionSystemToExternalProgram.Processors;
 using Hai.PositionSystemToExternalProgram.ApplicationLoop;
+using Hai.PositionSystemToExternalProgram.Robotics;
 
 namespace Hai.PositionSystemToExternalProgram.Program;
 
@@ -35,9 +36,10 @@ internal class MainApp
         var toBits = new BitsTransformer(layout);
         var decoder = new ExtractedDataDecoder();
         var interpreter = new DpsLightInterpreter();
+        var roboticsDriver = new RoboticsDriver();
         
         // Core
-        _routine = new Routine(serial, ovrStarter, ovrExtractor, windowGdiExtractor, config, toBits, decoder, layout, interpreter);
+        _routine = new Routine(config, layout, ovrStarter, ovrExtractor, windowGdiExtractor, toBits, decoder, interpreter, roboticsDriver, serial);
         
         // UI
         _uiMain = new UiMainApplication(new UiActions(_routine), config);

@@ -7,6 +7,7 @@ using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Tcode;
 using Hai.PositionSystemToExternalProgram.Extractors.GDI;
 using Hai.PositionSystemToExternalProgram.Processors;
+using Hai.PositionSystemToExternalProgram.Robotics;
 
 namespace Hai.PositionSystemToExternalProgram.ApplicationLoop;
 
@@ -23,6 +24,7 @@ public class Routine
     private readonly ExtractedDataDecoder _decoder;
     private readonly PositionSystemDataLayout _layout;
     private readonly DpsLightInterpreter _interpreter;
+    private readonly RoboticsDriver _roboticsDriver;
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
@@ -51,21 +53,24 @@ public class Routine
     }
 
     private readonly ConcurrentQueue<Action> _queuedForMain = new ConcurrentQueue<Action>();
-    private readonly Stopwatch _stopwatch;
+    private readonly Stopwatch _globalStopwatch;
     
     private bool _exitRequested;
     private double _nextStartOpenVrTime;
     private int _lastExtractionIteration;
+    
+    private long _lastRoboticsUpdate;
 
-    public Routine(TcodeSerial serial,
+    public Routine(SavedData config,
+        PositionSystemDataLayout layout,
         OpenVrStarter ovrStarter,
         OpenVrExtractor ovrExtractor,
         WindowGdiExtractor windowGdiExtractor,
-        SavedData config,
         BitsTransformer toBits,
         ExtractedDataDecoder decoder,
-        PositionSystemDataLayout layout,
-        DpsLightInterpreter interpreter)
+        DpsLightInterpreter interpreter,
+        RoboticsDriver roboticsDriver,
+        TcodeSerial serial)
     {
         _serial = serial;
         _ovrStarter = ovrStarter;
@@ -76,6 +81,7 @@ public class Routine
         _decoder = decoder;
         _layout = layout;
         _interpreter = interpreter;
+        _roboticsDriver = roboticsDriver;
 
         RawSerialData = new TcodeData();
         Data = new DecodedData();
@@ -84,7 +90,7 @@ public class Routine
         {
             IsOpenVrRunning = false;
         });
-        _stopwatch = Stopwatch.StartNew();
+        _globalStopwatch = Stopwatch.StartNew();
         
         ExtractedData = new ExtractionResult
         {
@@ -143,9 +149,9 @@ public class Routine
         }
         else
         {
-            if (_stopwatch.Elapsed.TotalSeconds > _nextStartOpenVrTime)
+            if (_globalStopwatch.Elapsed.TotalSeconds > _nextStartOpenVrTime)
             {
-                _nextStartOpenVrTime = _stopwatch.Elapsed.TotalSeconds + 5;
+                _nextStartOpenVrTime = _globalStopwatch.Elapsed.TotalSeconds + 5;
                 IsOpenVrRunning = _ovrStarter.TryStart();
             }
         }
@@ -187,20 +193,38 @@ public class Routine
             if (Data.validity == DataValidity.Ok)
             {
                 InterpretedData = _interpreter.Interpret(Data);
+                _roboticsDriver.ProvideTargets(InterpretedData);
             }
         }
+
+        // TODO: Split image extraction logic update rate from robotics logic update rate.
+        var roboticsCoordinates = _roboticsDriver.UpdateAndGetCoordinates(_lastRoboticsUpdate == 0 ? 10L : _globalStopwatch.ElapsedMilliseconds - _lastRoboticsUpdate);
+        _lastRoboticsUpdate = _globalStopwatch.ElapsedMilliseconds;
+
+        RawSerialData.L0 = RemapTarget(roboticsCoordinates.JoystickTargetL0);
+        RawSerialData.L1 = RemapTarget(roboticsCoordinates.JoystickTargetL1);
+        RawSerialData.L2 = RemapTarget(roboticsCoordinates.JoystickTargetL2);
+        RawSerialData.R0 = RemapTarget(roboticsCoordinates.AngleDegR0 / 35f);
+        RawSerialData.R1 = RemapTarget(roboticsCoordinates.AngleDegR1 / 35f);
+        RawSerialData.R2 = RemapTarget(roboticsCoordinates.AngleDegR2 / 35f);
         
         if (_serial.IsOpen && RawSerialData.autoUpdate)
         {
             Submit();
         }
-
+        
         // Limit logic to 100 fps, we don't want to extract images too fast
         var elapsedTime = sw.ElapsedMilliseconds;
         if (elapsedTime < 10)
         {
             Thread.Sleep((int)(10 - elapsedTime));
         }
+    }
+
+    private int RemapTarget(float joystick)
+    {
+        // TODO: This may be incorrect, we need 0 to 9999, but the serial controller will sanitize this.
+        return (int)(5000 + joystick * 5000);
     }
 
     public bool IsUsingVrExtractor()
