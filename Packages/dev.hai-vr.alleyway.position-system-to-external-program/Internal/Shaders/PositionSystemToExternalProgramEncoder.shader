@@ -336,20 +336,5 @@ SOFTWARE.
             
             ENDCG
         } // Pass
-
-		Pass
-		{
-		    Name "ShadowCaster"
-		    Tags {"LightMode"="ShadowCaster"}
-		    
-		    CGPROGRAM
-		    #pragma vertex vert_empty
-		    #pragma fragment frag_empty
-		    
-		    float4 vert_empty() : SV_POSITION { return 0; }
-		    fixed4 frag_empty() : SV_Target { clip(-1); return 0; }
-		    ENDCG
-		}
-
     } // SubShader
 } // Shader
