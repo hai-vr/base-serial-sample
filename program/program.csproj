@@ -8,6 +8,8 @@
 
         <OutputType>WinExe</OutputType>
         <Platforms>AnyCPU</Platforms>
+        
+        <AssemblyName>position-system</AssemblyName>
         <AssemblyVersion>$(ASSEMBLY_VERSION)</AssemblyVersion>
         <ApplicationIcon>favicon.ico</ApplicationIcon>
     </PropertyGroup>
