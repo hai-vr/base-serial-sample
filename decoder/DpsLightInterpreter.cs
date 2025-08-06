@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Core;
 
-namespace Hai.PositionSystemToExternalProgram.Processors;
+namespace Hai.PositionSystemToExternalProgram.Decoder;
 
 /// Using light information coming from ExtractedDataDecoder, interpret DPS-like light data.
 public class DpsLightInterpreter

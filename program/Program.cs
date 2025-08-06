@@ -4,7 +4,7 @@ using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Extractors.OVR;
 using Hai.PositionSystemToExternalProgram.Tcode;
 using Hai.PositionSystemToExternalProgram.Extractors.GDI;
-using Hai.PositionSystemToExternalProgram.Processors;
+using Hai.PositionSystemToExternalProgram.Decoder;
 using Hai.PositionSystemToExternalProgram.ApplicationLoop;
 using Hai.PositionSystemToExternalProgram.Robotics;
 

@@ -1,7 +1,7 @@
 using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
-using Hai.PositionSystemToExternalProgram.Processors;
+using Hai.PositionSystemToExternalProgram.Decoder;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;

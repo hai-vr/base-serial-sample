@@ -1,6 +1,6 @@
 ﻿using Hai.PositionSystemToExternalProgram.Core;
 
-namespace Hai.PositionSystemToExternalProgram.Processors;
+namespace Hai.PositionSystemToExternalProgram.Decoder;
 
 /// Given known shader settings, extract data contained within a larger texture (e.g. OpenVR mirror texture).
 public class BitsTransformer

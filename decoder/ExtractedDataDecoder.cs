@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Core;
 
-namespace Hai.PositionSystemToExternalProgram.Processors;
+namespace Hai.PositionSystemToExternalProgram.Decoder;
 
 /// Using data lines coming from TextureDataExtractor, decode into light information.
 public class ExtractedDataDecoder
