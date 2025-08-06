@@ -42,6 +42,7 @@ Main application execution projects:
 Core projects:
 - **core** contains data structures shared by many projects in this solution.
 - **decoder** contains the logic necessary to decode images into usable data.
+- **robotics** contains the controller that decides how the data will drive the robotic arm.
 
 External system projects:
 - **extractor-gdi**, **extractor-openvr**, and **tcode** interact with various external system APIs.
