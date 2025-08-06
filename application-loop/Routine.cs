@@ -140,8 +140,6 @@ public class Routine
             action.Invoke();
         }
         
-        // TODO: Only update this when the config updates
-
         if (IsOpenVrRunning)
         {
             // We need to poll events, because we need to detect when SteamVR is shutting down.

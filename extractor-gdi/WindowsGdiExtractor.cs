@@ -10,30 +10,22 @@ namespace Hai.PositionSystemToExternalProgram.Extractors.GDI;
 /// Extracts the entire window screen of a process, possibly including title bar and borders of that screen.
 public class WindowGdiExtractor
 {
-    private const bool IsMinimalMode = false; // TODO: Make this true only if the UI is displaying the picture
-    
-    private readonly bool _ignoreRedAndBlueColors;
     private const int NumberOfColorComponents = 4;
-    
-    private readonly Stopwatch _time;
 
     public string desiredWindowName = "";
+    
+    private readonly Stopwatch _time;
     
     // Unused debug outputs
     private int _bigWindowWidth;
     private int _bigWindowHeight;
     private byte[] _bigWindowBytes;
-    // private int shiftX;
-    // private int shiftY;
-    // private Vector4 windowRectDebug;
-    // private Vector4 clientRectDebug;
     
     private IntPtr _widnowHandle_hwnd;
     private IntPtr _screen;
     private IntPtr _target_hdc;
     private IntPtr _bmp_hgdiobj;
     private GDIBiz.GdiBiz_BITMAPINFO _bitmapInfo;
-    // public int getDIBitsReturnValue;
     private bool _hasInitializedAtLeastOnce;
     
     private readonly StringBuilder _buffer = new StringBuilder(2048);
@@ -154,16 +146,10 @@ public class WindowGdiExtractor
     private bool CheckWindowValidAndUpdateIt()
     {
         GDIBiz.GetWindowRect(_widnowHandle_hwnd, out GDIBiz.GdiBiz_RECT rect);
-        // windowRectDebug = new Vector4(
-            // rect.Left,
-            // rect.Right,
-            // rect.Top,
-            // rect.Bottom
-        // );
 
         if (false)
         {
-            // This sucks massively, doesn't work on some windows, and also on windows like Notepad you need to get one of the child windows.
+            // This doesn't work on some windows and also on windows like Notepad you need to get one of the child windows.
             // TODO: Possible handle title bar which height changes while the app is still running (borderless style, etc.)
             GDIBiz.GetClientRect(_widnowHandle_hwnd, out GDIBiz.GdiBiz_RECT clientRect);
             // clientRectDebug = new Vector4(
@@ -176,9 +162,6 @@ public class WindowGdiExtractor
             
         var theoricalWidth = rect.Right - rect.Left;
         var theoricalHeight = rect.Bottom - rect.Top;
-
-        // shiftX = theoricalWidth - clientRect.Right;
-        // shiftY = theoricalHeight - clientRect.Bottom;
 
         var width = theoricalWidth;
         var height = theoricalHeight;
@@ -243,7 +226,7 @@ public class WindowGdiExtractor
                 var directxScratchIndex = (((int)_height - scratchY - 1) * (int)_width + scratchX) * NumberOfColorComponents;
 
                 var sampleX = scratchX + _offsetX;
-                var sampleY = scratchY - _offsetY + _bigWindowHeight - _height; // FIXME: I don't understand
+                var sampleY = scratchY - _offsetY + _bigWindowHeight - _height; // I don't understand, but it works
                 if (sampleX >= 0 && sampleX < _bigWindowWidth && sampleY >= 0 && sampleY < _bigWindowHeight)
                 {
                     var bigWindowBytesSampleIndex = (sampleY * _bigWindowWidth + sampleX) * NumberOfColorComponents;
@@ -256,31 +239,17 @@ public class WindowGdiExtractor
                         _bigWindowBytes[bigWindowBytesSampleIndex + 2],
                         _bigWindowBytes[bigWindowBytesSampleIndex + 1]
                     );
-                    
-                    if (IsMinimalMode)
-                    {
-                        _marshalDataB[directxScratchIndex + 1] = _bigWindowBytes[bigWindowBytesSampleIndex + 1];
-                    }
-                    else
-                    {
-                        // Doing this is not strictly necessary, as it's only for the benefit of the UI being able to display it for debug/alignment purposes.
-                        _marshalDataB[directxScratchIndex] = _bigWindowBytes[bigWindowBytesSampleIndex + 2];
-                        _marshalDataB[directxScratchIndex + 1] = _bigWindowBytes[bigWindowBytesSampleIndex + 1];
-                        _marshalDataB[directxScratchIndex + 2] = _bigWindowBytes[bigWindowBytesSampleIndex];
-                    }
+
+                    // Doing this is not strictly necessary, as it's only for the benefit of the UI being able to display it for debug/alignment purposes.
+                    _marshalDataB[directxScratchIndex] = _bigWindowBytes[bigWindowBytesSampleIndex + 2];
+                    _marshalDataB[directxScratchIndex + 1] = _bigWindowBytes[bigWindowBytesSampleIndex + 1];
+                    _marshalDataB[directxScratchIndex + 2] = _bigWindowBytes[bigWindowBytesSampleIndex];
                 }
                 else
                 {
-                    if (IsMinimalMode)
-                    {
-                        _marshalDataB[directxScratchIndex + 1] = 128;
-                    }
-                    else
-                    {
-                        _marshalDataB[directxScratchIndex] = 128;
-                        _marshalDataB[directxScratchIndex + 1] = 128;
-                        _marshalDataB[directxScratchIndex + 2] = 128;
-                    }
+                    _marshalDataB[directxScratchIndex] = 128;
+                    _marshalDataB[directxScratchIndex + 1] = 128;
+                    _marshalDataB[directxScratchIndex + 2] = 128;
                 }
             }
         }
@@ -298,20 +267,5 @@ public class WindowGdiExtractor
             Height = _height,
             Iteration = _extractionIteration
         };
-    }
-
-    private static void Reset(int dstIndex, bool minimalMode, byte[] dataScratchBytes)
-    {
-        if (minimalMode)
-        {
-            dataScratchBytes[dstIndex + 1] = 128;
-        }
-        else
-        {
-            dataScratchBytes[dstIndex] = 128;
-            dataScratchBytes[dstIndex + 1] = 128;
-            dataScratchBytes[dstIndex + 2] = 128;
-            dataScratchBytes[dstIndex + 3] = 255;
-        }
     }
 }
