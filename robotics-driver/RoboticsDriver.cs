@@ -8,8 +8,10 @@ public class RoboticsDriver
 {
     private float _configPolarModeBottommostRadius = 0.4f;
     private float _configPolarModeUppermostRadius = 1f;
-    private float _configVirtualScaleChange = 1f; // = 1.5f;
+    private float _configVirtualScaleChange = 1f;
     private bool _configSafetyUsePolarMode = false;
+    private float _configDistanceBeyondWhichInputsAreIgnored = 3f;
+    private bool _configUsePidTarget = false;
     
     private float _unsafeJoystickTargetL0;
     private float _unsafeJoystickTargetL1;
@@ -20,6 +22,8 @@ public class RoboticsDriver
     private float _unsafeVerticality;
     
     private Vector3 _transitionalCoordinate;
+    private readonly PidControllerVector3 _postTransitionalPid;
+    private Vector3 _pidCoordinate;
     
     private float _offsetJoystickTargetL0;
     private float _offsetJoystickTargetL1;
@@ -34,6 +38,18 @@ public class RoboticsDriver
     private float _safeAngleDegTargetR0 = 0; 
     private float _safeAngleDegTargetR1 = 0; 
     private float _safeAngleDegTargetR2 = 0;
+
+    public RoboticsDriver()
+    {
+        // TODO: We need to tune this PID controller.
+        _postTransitionalPid = new PidControllerVector3
+        {
+            proportionalGain = 0.05f,
+            integralGain = 1f,
+            derivativeGain = 0f,
+            integralMaximumMagnitude = 0.1f
+        };
+    }
 
     public void ProvideTargets(InterpretedLightData interpretedData)
     {
@@ -51,20 +67,27 @@ public class RoboticsDriver
             // and only consider (0, 0, 0) as being a preferred position.
 
             // Confine the input light position to a centered box and make it match the robotics coordinate system.
-            _unsafeJoystickTargetL0 = RemapAndClamp(interpretedData.position.Y / _configVirtualScaleChange, 0f, 1f, -1f, 1f);
-            _unsafeJoystickTargetL1 = RemapAndClamp(-interpretedData.position.Z / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
-            _unsafeJoystickTargetL2 = RemapAndClamp(interpretedData.position.X / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
-            _unsafeVerticality = (_unsafeJoystickTargetL0 + 1) / 2f;
-
-            if (interpretedData.hasNormal)
+            var unclampedL0 = Remap(interpretedData.position.Y / _configVirtualScaleChange, 0f, 1f, -1f, 1f);
+            var unclampedL1 = Remap(-interpretedData.position.Z / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
+            var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
+            var unclampedVector = new Vector3(unclampedL0, unclampedL1, unclampedL2);
+            if (unclampedVector.Length() <= _configDistanceBeyondWhichInputsAreIgnored)
             {
-                // Perform a normal to degree conversion. This limits the range from -90 to +90.
-                _unsafeAngleDegR0 = 0; // Normals have no twist, so we cannot set this.
-                _unsafeAngleDegR1 = NormalToDegrees(-interpretedData.normal.X);
-                _unsafeAngleDegR2 = NormalToDegrees(-interpretedData.normal.Z);
+                _unsafeJoystickTargetL0 = Clamp(unclampedL0, -1f, 1f);
+                _unsafeJoystickTargetL1 = Clamp(unclampedL1, -1f, 1f);
+                _unsafeJoystickTargetL2 = Clamp(unclampedL2, -1f, 1f);
+                _unsafeVerticality = (_unsafeJoystickTargetL0 + 1) / 2f;
+
+                if (interpretedData.hasNormal)
+                {
+                    // Perform a normal to degree conversion. This limits the range from -90 to +90.
+                    _unsafeAngleDegR0 = 0; // Normals have no twist, so we cannot set this.
+                    _unsafeAngleDegR1 = NormalToDegrees(-interpretedData.normal.X);
+                    _unsafeAngleDegR2 = NormalToDegrees(-interpretedData.normal.Z);
+                }
             }
         }
-        
+
         // ## From there on, we use the robotic arm coordinate space, where X is up (!!!)
 
         if (_configSafetyUsePolarMode)
@@ -85,22 +108,27 @@ public class RoboticsDriver
             _transitionalCoordinate = new Vector3(_unsafeJoystickTargetL0, _unsafeJoystickTargetL1, _unsafeJoystickTargetL2);
         }
 
-        // ## Calculate Outputs
+        if (!_configUsePidTarget)
         {
-            // Apply offsets to the physical device. Note that doing this will reduce the motion range of the device
-            // because the input was already clamped.
-            // Using offsets instead of reducing the motion space has the advantage that the motion in virtual space
-            // is still consistent in scale in comparison to the other axis.
-            _safeJoystickTargetL0 = Clamp(_transitionalCoordinate.X + _offsetJoystickTargetL0, -1f, 1f);
-            _safeJoystickTargetL1 = Clamp(_transitionalCoordinate.Y + _offsetJoystickTargetL1, -1f, 1f);
-            _safeJoystickTargetL2 = Clamp(_transitionalCoordinate.Z + _offsetJoystickTargetL2, -1f, 1f);
-
-            // Apply offsets to the physical device and clamp it. Since the input was not clamped,
-            // this will not reduce the motion range of the device.
-            _safeAngleDegTargetR0 = Clamp(_unsafeAngleDegR0 + _offsetAngleDegR0, -360f, 360f);
-            _safeAngleDegTargetR1 = Clamp(_unsafeAngleDegR1 + _offsetAngleDegR1, -65f, 65f);
-            _safeAngleDegTargetR2 = Clamp(_unsafeAngleDegR2 + _offsetAngleDegR2, -65f, 65f);
+            CalculateOutputs(_transitionalCoordinate);
         }
+    }
+
+    private void CalculateOutputs(Vector3 whichVector)
+    {
+        // Apply offsets to the physical device. Note that doing this will reduce the motion range of the device
+        // because the input was already clamped.
+        // Using offsets instead of reducing the motion space has the advantage that the motion in virtual space
+        // is still consistent in scale in comparison to the other axis.
+        _safeJoystickTargetL0 = Clamp(whichVector.X + _offsetJoystickTargetL0, -1f, 1f);
+        _safeJoystickTargetL1 = Clamp(whichVector.Y + _offsetJoystickTargetL1, -1f, 1f);
+        _safeJoystickTargetL2 = Clamp(whichVector.Z + _offsetJoystickTargetL2, -1f, 1f);
+
+        // Apply offsets to the physical device and clamp it. Since the input was not clamped,
+        // this will not reduce the motion range of the device.
+        _safeAngleDegTargetR0 = Clamp(_unsafeAngleDegR0 + _offsetAngleDegR0, -360f, 360f);
+        _safeAngleDegTargetR1 = Clamp(_unsafeAngleDegR1 + _offsetAngleDegR1, -65f, 65f);
+        _safeAngleDegTargetR2 = Clamp(_unsafeAngleDegR2 + _offsetAngleDegR2, -65f, 65f);
     }
 
     public void MarkDataFailure()
@@ -111,6 +139,16 @@ public class RoboticsDriver
 
     public RoboticsCoordinates UpdateAndGetCoordinates(long deltaTimeMs)
     {
+        if (_configUsePidTarget)
+        {
+            var fixedDeltaTime = deltaTimeMs / 1000f;
+            Console.WriteLine(_pidCoordinate);
+            var postPid = _postTransitionalPid.Update(fixedDeltaTime, _pidCoordinate, _transitionalCoordinate);
+            _pidCoordinate = _pidCoordinate + postPid;
+            
+            CalculateOutputs(_pidCoordinate);
+        }
+
         // TODO: Consider implementing a PID controller to track an alternative root,
         // and another PID controller to handle data losses and act as a motion speed limiter.
         
@@ -134,11 +172,17 @@ public class RoboticsDriver
 
     private static float RemapAndClamp(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
+        var result = Remap(value, fromMin, fromMax, toMin, toMax);
+        if (result < toMin) return toMin;
+        if (result > toMax) return toMax;
+        return result;
+    }
+
+    private static float Remap(float value, float fromMin, float fromMax, float toMin, float toMax)
+    {
         var vv = Math.Max(fromMin, Math.Min(fromMax, value));
         var normalizedValue = (vv - fromMin) / (fromMax - fromMin);
         var result = toMin + normalizedValue * (toMax - toMin);
-        if (result < toMin) return toMin;
-        if (result > toMax) return toMax;
         return result;
     }
 
