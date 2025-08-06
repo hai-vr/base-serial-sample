@@ -11,8 +11,9 @@ public class RoboticsDriver
     private float _configVirtualScaleChange = 1f;
     private bool _configSafetyUsePolarMode = false;
     private float _configDistanceBeyondWhichInputsAreIgnored = 3f;
+    private bool _configUsePidRoot = true;
     private bool _configUsePidTarget = false;
-    
+
     private float _unsafeJoystickTargetL0;
     private float _unsafeJoystickTargetL1;
     private float _unsafeJoystickTargetL2;
@@ -23,8 +24,12 @@ public class RoboticsDriver
     
     private Vector3 _transitionalCoordinate;
     private readonly PidControllerVector3 _postTransitionalPid;
-    private Vector3 _pidCoordinate;
+    private Vector3 _pidCoordinateCurrent;
     
+    private readonly PidControllerVector3 _rootPositionPid;
+    private Vector3 _pidRootCurrent;
+    private Vector3 _pidRootTarget;
+
     private float _offsetJoystickTargetL0;
     private float _offsetJoystickTargetL1;
     private float _offsetJoystickTargetL2;
@@ -41,7 +46,14 @@ public class RoboticsDriver
 
     public RoboticsDriver()
     {
-        // TODO: We need to tune this PID controller.
+        // TODO: We need to those PID controllers.
+        _rootPositionPid = new PidControllerVector3
+        {
+            proportionalGain = 0.001f,
+            integralGain = 0.1f,
+            derivativeGain = 0f,
+            integralMaximumMagnitude = 0.1f
+        };
         _postTransitionalPid = new PidControllerVector3
         {
             proportionalGain = 0.05f,
@@ -70,12 +82,26 @@ public class RoboticsDriver
             var unclampedL0 = Remap(interpretedData.position.Y / _configVirtualScaleChange, 0f, 1f, -1f, 1f);
             var unclampedL1 = Remap(-interpretedData.position.Z / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
             var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScaleChange, -0.5f, 0.5f, -1f, 1f);
-            var unclampedVector = new Vector3(unclampedL0, unclampedL1, unclampedL2);
+            var unclampedVectorUntouched = new Vector3(unclampedL0, unclampedL1, unclampedL2);
+            
+            // Optionally use a PID integrator to stabilize the root as an error.
+            Vector3 unclampedVector;
+            if (_configUsePidRoot)
+            {
+                _pidRootTarget = unclampedVectorUntouched;
+                unclampedVector = unclampedVectorUntouched - _pidRootCurrent;
+                Console.WriteLine(_pidRootCurrent);
+            }
+            else
+            {
+                unclampedVector = unclampedVectorUntouched;
+            }
+            
             if (unclampedVector.Length() <= _configDistanceBeyondWhichInputsAreIgnored)
             {
-                _unsafeJoystickTargetL0 = Clamp(unclampedL0, -1f, 1f);
-                _unsafeJoystickTargetL1 = Clamp(unclampedL1, -1f, 1f);
-                _unsafeJoystickTargetL2 = Clamp(unclampedL2, -1f, 1f);
+                _unsafeJoystickTargetL0 = Clamp(unclampedVector.X, -1f, 1f);
+                _unsafeJoystickTargetL1 = Clamp(unclampedVector.Y, -1f, 1f);
+                _unsafeJoystickTargetL2 = Clamp(unclampedVector.Z, -1f, 1f);
                 _unsafeVerticality = (_unsafeJoystickTargetL0 + 1) / 2f;
 
                 if (interpretedData.hasNormal)
@@ -139,18 +165,18 @@ public class RoboticsDriver
 
     public RoboticsCoordinates UpdateAndGetCoordinates(long deltaTimeMs)
     {
+        var deltaTime = deltaTimeMs / 1000f;
+        if (_configUsePidRoot)
+        {
+            _pidRootCurrent += _rootPositionPid.Update(deltaTime, _pidRootCurrent, _pidRootTarget);
+        }
+        
         if (_configUsePidTarget)
         {
-            var fixedDeltaTime = deltaTimeMs / 1000f;
-            Console.WriteLine(_pidCoordinate);
-            var postPid = _postTransitionalPid.Update(fixedDeltaTime, _pidCoordinate, _transitionalCoordinate);
-            _pidCoordinate = _pidCoordinate + postPid;
+            _pidCoordinateCurrent += _postTransitionalPid.Update(deltaTime, _pidCoordinateCurrent, _transitionalCoordinate);
             
-            CalculateOutputs(_pidCoordinate);
+            CalculateOutputs(_pidCoordinateCurrent);
         }
-
-        // TODO: Consider implementing a PID controller to track an alternative root,
-        // and another PID controller to handle data losses and act as a motion speed limiter.
         
         return new RoboticsCoordinates
         {
@@ -180,8 +206,7 @@ public class RoboticsDriver
 
     private static float Remap(float value, float fromMin, float fromMax, float toMin, float toMax)
     {
-        var vv = Math.Max(fromMin, Math.Min(fromMax, value));
-        var normalizedValue = (vv - fromMin) / (fromMax - fromMin);
+        var normalizedValue = (value - fromMin) / (fromMax - fromMin);
         var result = toMin + normalizedValue * (toMax - toMin);
         return result;
     }
