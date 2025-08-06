@@ -10,7 +10,7 @@ public class BitsTransformer
     // shader effects will write over our pixels.
     // We can't use a too low value, because tonemapping can occur and might change the blackness,
     // even in the presence of bloom.
-    private const int ColorValueThresholdForTruthness = 30;
+    private const int ColorValueThresholdForTruthness = 110;
 
     private readonly PositionSystemDataLayout _dataLayout;
     private readonly bool[] _data;

@@ -70,7 +70,7 @@ By default, the shader outputs:
 - 50% red for its true value, and 0% green. It is 50% so that it does not trigger bloom on post-processing heavy scenarios.
 - A negative pixel (-10000, -10000, -10000, 1) for its false value, which is perceived as black. The pixel is made of negative values so that bloom will not affect the black pixels.
 
-On the program side, we check for a red value above 30 (12%). Optionally, the green value is removed from the red value, in an attempt to cancel out bloom.
+On the program side, we check for a red value above 110 (43%). Optionally, the green value is removed from the red value, in an attempt to cancel out bloom.
 
 ### Shader version 1.0.0
 
