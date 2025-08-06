@@ -57,6 +57,7 @@ public class UiActions
             if (!_configCoordinatesUpdated) return;
 
             _routine.RefreshExtractionConfiguration();
+            _configCoordinatesUpdated = false;
         });
     }
 
@@ -68,6 +69,7 @@ public class UiActions
             if (!_configRoboticsUpdated) return;
 
             _routine.RefreshRoboticsConfiguration();
+            _configRoboticsUpdated = false;
         });
     }
 }
