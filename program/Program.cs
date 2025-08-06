@@ -12,7 +12,7 @@ namespace Hai.PositionSystemToExternalProgram.Program;
 
 internal class MainApp
 {
-    private const string AppTitle = "Position System to External Program";
+    private const string AppTitle = "Position System";
     
     private readonly Routine _routine;
     private readonly UiMainApplication _uiMain;

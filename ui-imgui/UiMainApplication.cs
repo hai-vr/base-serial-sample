@@ -17,9 +17,7 @@ public class UiMainApplication
     private const string CloseSerialLabel = "Close serial";
     private const string DataLabel = "Data";
     private const string DebugLabel = "Debug";
-    private const string ExtractorLabel = "Extractor";
     private const string ExtractorPreferenceLabel = "Extractor Preference";
-    private const string HardwareLabel = "Hardware";
     private const string InterpretedDataLabel = "Interpreted data";
     private const string LightsLabel = "Lights";
     private const string ModeLabel = "Mode";
