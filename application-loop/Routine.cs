@@ -328,7 +328,7 @@ public class Routine
         _directLightData = new InterpretedLightData
         {
             position = new Vector3(positionX, positionY, positionZ),
-            normal = new Vector3(normalX, normalY, normalZ),
+            normal = Vector3.Normalize(new Vector3(normalX, normalY, normalZ)),
             hasTarget = true,
             hasNormal = true
         };
