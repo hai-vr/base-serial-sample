@@ -6,7 +6,9 @@ to a robotic arm.
 
 Other users may be able to remotely control the position and rotation of your robotic arm through a shared virtual space.
 
-Alternatively, this optionally exposes a WebSocket service to enable direct control from virtual space systems like Resonite.
+In addition:
+- The position and rotation of the camera in world space is also extracted. This could be used to pin SteamVR overlays in world space.
+- This optionally exposes a WebSocket service to enable direct control of the robotic arm from virtual space systems like Resonite.
 
 # User documentation
 
