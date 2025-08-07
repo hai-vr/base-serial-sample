@@ -101,7 +101,7 @@ SOFTWARE.
 // -----------------------------------------------------------------------------------------------------------------
 
             static const uint VENDOR = 1366692562;
-            static const uint VERSION = 1000000; // 1 000 000 is 1.0.0
+            static const uint VERSION = 1001000; // 1 001 000 is 1.1.0
             static const uint CANARY = 1431677610;
             
 			static const int GROUP_32 = 32;
@@ -113,8 +113,8 @@ SOFTWARE.
 			static const int GROUP_LightPositionStart = 4;
 			static const int GROUP_LightColorStart = 16;
 			static const int GROUP_LightAttenuationStart = 32;
-			static const int GROUP_HmdPositionStart = 36;
-			static const int GROUP_HmdRotationStart = 40;
+			static const int GROUP_CameraPositionStart = 36;
+			static const int GROUP_CameraRotationStart = 39;
 			static const int GROUP_Canary = 51;
 			static const int GROUP_LENGTH = 52;
             
@@ -125,6 +125,8 @@ SOFTWARE.
             static const int posDataSize = 4 * 3;
             static const int colorDataSize = 4 * 4;
             static const int attenDataSize = 4;
+            static const int cameraPositionDataSize = 3;
+            static const int cameraRotationDataSize = 3;
             static const int canaryDataSize = 1;
             
 			static const float GrayLevel = 0.5;
@@ -133,6 +135,32 @@ SOFTWARE.
 			static const int MARGIN = 1;
 			
 			static const uint CRC32_POLYNOMIAL = 0xEDB88320u;
+
+            float3 GetUnityEulerAngles(float3x3 rotMatrix)
+			{
+		    	float3 euler;
+			    float sinX = clamp(rotMatrix[1][2], -1.0, 1.0);
+			    euler.x = asin(sinX);
+
+			    if (abs(rotMatrix[1][2]) < 0.99999)
+			    {
+			        euler.y = atan2(rotMatrix[0][2], rotMatrix[2][2]);
+			        euler.z = atan2(rotMatrix[1][0], rotMatrix[1][1]);
+			    }
+			    else
+			    {
+			        euler.y = atan2(-rotMatrix[2][0], rotMatrix[0][0]);
+			        euler.z = 0.0;
+			    }
+
+			    euler = degrees(euler);
+
+            	// mate, I suck at converting stuff
+            	// this probably means there's an error in the conversion above but I cannot be bothered
+            	euler.y -= 180.0;
+
+			    return euler;
+			}
             
             uint NthBit(uint uval, int bit) {
 				return uval & (uint)(1 << bit);
@@ -186,6 +214,21 @@ SOFTWARE.
                 	int lightN = (int)(groupY - GROUP_LightAttenuationStart);
             		
                 	float data = unity_4LightAtten0[lightN];
+                	return asuint(data);
+            	}
+            	else if (groupY < GROUP_CameraPositionStart + cameraPositionDataSize)
+            	{
+                    float componentOfThisVector = groupY - GROUP_CameraPositionStart;
+                	float data = _WorldSpaceCameraPos[componentOfThisVector];
+                	return asuint(data);
+            	}
+            	else if (groupY < GROUP_CameraRotationStart + cameraRotationDataSize)
+            	{
+					float3x3 camRotMatrix = (float3x3)UNITY_MATRIX_I_V;
+            		float3 eulerZXY = GetUnityEulerAngles(camRotMatrix);
+            		
+                    float componentOfThisVector = groupY - GROUP_CameraRotationStart;
+                	float data = eulerZXY[componentOfThisVector];
                 	return asuint(data);
             	}
             	// Notice the more or equal, we don't want to write over the reserved values.

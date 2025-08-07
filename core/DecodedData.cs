@@ -6,15 +6,24 @@ public class DecodedData
 {
     /// If the last checksum failed, the data will still contain the last known valid decoded data.
     public DataValidity validity;
-    
+
+    public uint Version = 0;
     public float Time = -1f;
     public DecodedLight Light0 { get; } = new();
     public DecodedLight Light1 { get; } = new();
     public DecodedLight Light2 { get; } = new();
     public DecodedLight Light3 { get; } = new();
     public DecodedLight[] Lights { get; }
-    public Vector3 HmdPosition;
-    public Vector4 HmdRotation;
+    public Vector3 CameraPosition;
+    public Vector3 CameraRotation;
+
+    public string AsSemverString()
+    {
+        var major = Version / 1_000_000;
+        var minor = (Version / 1_000) % 1000;
+        var patch = Version % 1000;
+        return $"{major}.{minor}.{patch}";
+    }
 
     public DecodedData()
     {

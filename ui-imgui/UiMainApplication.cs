@@ -45,6 +45,7 @@ public class UiMainApplication
     private const string SafetySettingsLabel = "Safety settings";
     private const string VirtualScaleLabel = "Virtual scale";
     private const string MsgDataNotInitialized = "Data not initialized";
+    private const string CameraLabel = "Camera";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -280,12 +281,37 @@ public class UiMainApplication
                 ImGui.SeparatorText(InterpretedDataLabel);
                 InterpretedDebug(interpreted);
             });
+            _scrollManager.MakeTab(CameraLabel, () =>
+            {
+                var extractedData = _uiActions.ExtractedData();
+                if (extractedData.IsValid())
+                {
+                    var decodedData = _uiActions.Data();
+                    if (decodedData.Version < 1_001_000)
+                    {
+                        ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 1, 1));
+                        ImGui.Text($"Detected shader version is {decodedData.AsSemverString()}, which does not support camera position (minimum required: 1.1.0)");
+                        ImGui.PopStyleColor();
+                        ImGui.NewLine();
+                    }
+                    ImGui.Text($"Camera Position X: {decodedData.CameraPosition.X}");
+                    ImGui.Text($"Camera Position Y: {decodedData.CameraPosition.Y}");
+                    ImGui.Text($"Camera Position Z: {decodedData.CameraPosition.Z}");
+                    ImGui.NewLine();
+                    ImGui.Text($"Camera Rotation X: {decodedData.CameraRotation.X}");
+                    ImGui.Text($"Camera Rotation Y: {decodedData.CameraRotation.Y}");
+                    ImGui.Text($"Camera Rotation Z: {decodedData.CameraRotation.Z}");
+                }
+            });
             _scrollManager.MakeTab(DataLabel, () =>
             {
                 var extractedData = _uiActions.ExtractedData();
                 if (extractedData.IsValid())
                 {
+                    var decodedData = _uiActions.Data();
+                    ImGui.Text($"Version: {decodedData.AsSemverString()}");
                     DrawSieve(32);
+                    ImGui.NewLine();
                 }
             });
             ImGui.EndTabBar();
@@ -425,7 +451,7 @@ public class UiMainApplication
             if (numberOfLines == ExtractedDataDecoder.GroupLength)
             {
                 ImGui.SameLine();
-                ImGui.Text("  ->   " + Enum.GetName(typeof(ShaderV1_0_0), (ShaderV1_0_0)row));
+                ImGui.Text("  ->   " + Enum.GetName(typeof(ShaderV1_1_0), (ShaderV1_1_0)row));
             }
         }
         if (!valid) ImGui.PopStyleColor();

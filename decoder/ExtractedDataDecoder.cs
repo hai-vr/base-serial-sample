@@ -21,8 +21,8 @@ public class ExtractedDataDecoder
     private const int LightPositionStart = 4;
     private const int LightColorStart = LightPositionStart + 4 * NumberOfComponentsInAVector;
     private const int LightAttenuationStart = LightColorStart + 4 * NumberOfComponentsInAColor;
-    private const int HmdPositionStart = 36;
-    private const int HmdRotationStart = 40;
+    private const int CameraPositionStart = 36;
+    private const int CameraRotationStart = 39;
     public const int GroupLength = 52;
     
     private const uint Crc32Polynomial = 0xEDB88320u;
@@ -65,10 +65,10 @@ public class ExtractedDataDecoder
         }
         
         var versionSemverValue = SampleUInt32(VersionSemver);
+        decodedMutated.Version = versionSemverValue;
         var major = versionSemverValue / 1_000_000;
         if (major != OurMajorVersionNumber)
         {
-            // TODO: Expose the version to the decoded data.
             decodedMutated.validity = DataValidity.UnexpectedMajorVersion;
             _lastChesksumPassingValidity = DataValidity.UnexpectedMajorVersion;
             return;
@@ -78,6 +78,17 @@ public class ExtractedDataDecoder
         {
             var light = decodedMutated.Lights[index];
             DecodeLight(index, light);
+        }
+
+        if (versionSemverValue >= 1_001_000)
+        {
+            decodedMutated.CameraPosition = ReadVector3StartingFromLine(CameraPositionStart, out var pos) ? pos : Vector3.Zero;
+            decodedMutated.CameraRotation = ReadVector3StartingFromLine(CameraRotationStart, out var rot) ? rot : Vector3.Zero;
+        }
+        else
+        {
+            decodedMutated.CameraPosition = Vector3.Zero;
+            decodedMutated.CameraRotation = Vector3.Zero;
         }
         
         decodedMutated.validity = DataValidity.Ok;
