@@ -1,13 +1,11 @@
 ﻿using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using System.Text;
-using Hai.PositionSystemToExternalProgram.Core;
 
 namespace Hai.PositionSystemToExternalProgram.Services.Websockets;
 
 public class WebsocketsService
 {
-    private readonly IWebsocketActions _websocketActions;
     private readonly ConcurrentDictionary<string, WebSocket> _connections = new();
     
     private WebsocketsStarter _callback;
