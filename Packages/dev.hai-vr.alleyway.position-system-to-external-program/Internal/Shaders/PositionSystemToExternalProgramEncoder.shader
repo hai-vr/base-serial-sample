@@ -101,7 +101,7 @@ SOFTWARE.
 // -----------------------------------------------------------------------------------------------------------------
 
             static const uint VENDOR = 1366692562;
-            static const uint VERSION = 1001000; // 1 001 000 is 1.1.0
+            static const uint VERSION = 1001001; // 1 001 001 is 1.1.1
             static const uint CANARY = 1431677610;
             
 			static const int GROUP_32 = 32;
