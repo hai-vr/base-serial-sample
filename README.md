@@ -79,10 +79,10 @@ When rendered on a window, it is drawn at the top left. When rendered in VR, it 
 The size of the squares in VR is a fixed proportion of the vertical resolution to counteract the *Resolution Per Eye* setting.
 
 By default, the shader outputs:
-- 50% red for its true value, and 0% green. It is 50% so that it does not trigger bloom on post-processing heavy scenarios.
+- 50% gray for its true value. It is 50% so that it does not trigger bloom on post-processing heavy scenarios.
 - A negative pixel (-10000, -10000, -10000, 1) for its false value, which is perceived as black. The pixel is made of negative values so that bloom will not affect the black pixels.
 
-On the program side, we check for a red value above 110 (43%). Optionally, the green value is removed from the red value, in an attempt to cancel out bloom.
+On the program side, we check for a red value above 110 (43%).
 
 ### Shader version 1.1.0
 

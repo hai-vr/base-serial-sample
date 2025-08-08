@@ -7,6 +7,11 @@ public static class ExtractionMethodology
     // black pixels getting elevated red values due to the bloom.
     public static byte CombineRedGreen(byte red, byte green)
     {
-        return (byte)Math.Clamp(red - green, 0, 255);
+        // We no longer use this. The shader now outputs gray, not red and 0% green like it used to.
+        if (false)
+        {
+            // return (byte)Math.Clamp(red - green, 0, 255);
+        }
+        return red;
     }
 }

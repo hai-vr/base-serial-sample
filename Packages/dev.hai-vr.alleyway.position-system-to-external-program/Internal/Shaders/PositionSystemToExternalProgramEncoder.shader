@@ -364,7 +364,7 @@ SOFTWARE.
             		crc = crc ^ 0xFFFFFFFFu;
 					
 					uint result = NthBit(crc, group.x);
-					if (result) return half4(GrayLevel, 0, 0, 1);
+					if (result) return half4(GrayLevel, GrayLevel, GrayLevel, 1);
 					else return half4(-10000, -10000, -10000, 1);
 				}
             	else
@@ -372,7 +372,7 @@ SOFTWARE.
             		uint data = getData(group.y);
 					
 					uint result = NthBit(data, group.x);
-					if (result) return half4(GrayLevel, 0, 0, 1);
+					if (result) return half4(GrayLevel, GrayLevel, GrayLevel, 1);
 					else return half4(-10000, -10000, -10000, 1);
             	}
             }
