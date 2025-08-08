@@ -42,7 +42,7 @@ public class RoboticsDriver
     private float _offsetJoystickTargetL2;
     private float _offsetAngleDegR0; 
     private float _offsetAngleDegR1; 
-    private float _offsetAngleDegR2; // = 30; 
+    private float _offsetAngleDegR2; 
     
     private float _safeJoystickTargetL0;
     private float _safeJoystickTargetL1;
@@ -235,17 +235,18 @@ public class RoboticsDriver
         return angleDegrees;
     }
 
-    public void UpdateConfiguration(
-        float configRoboticsVirtualScale,
+    public void UpdateConfiguration(float configRoboticsVirtualScale,
         bool configRoboticsSafetyUsePolarMode,
         bool configRoboticsUsePidRoot,
         bool configRoboticsUsePidTarget,
-        float configTopmostHardLimit)
+        float configTopmostHardLimit,
+        float configOffsetAngleDegR2)
     {
         _configVirtualScale = configRoboticsVirtualScale;
         _configSafetyUsePolarMode = configRoboticsSafetyUsePolarMode;
         _configUsePidRoot = configRoboticsUsePidRoot;
         _configUsePidTarget = configRoboticsUsePidTarget;
         _configTopmostHardLimit = configTopmostHardLimit;
+        _offsetAngleDegR2 = configOffsetAngleDegR2;
     }
 }

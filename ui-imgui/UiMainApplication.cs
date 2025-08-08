@@ -27,6 +27,8 @@ public class UiMainApplication
     private const string LimitMovementWithinACircleLabel = "Limit movement within a circle";
     private const string ModeLabel = "Mode";
     private const string MsgDataNotInitialized = "Data not initialized";
+    private const string OffsetPitchAngleLabel = "Offset pitch angle";
+    private const string OffsetsLabel = "Offsets";
     private const string OpenVrLabel = "OpenVR";
     private const string RefreshLabel = "Refresh";
     private const string ResetLabel = "Reset";
@@ -346,6 +348,16 @@ public class UiMainApplication
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
             
             ImGui.NewLine();
+            
+            ImGui.NewLine();
+            ImGui.SeparatorText(OffsetsLabel);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat(OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
+            if (ImGui.Button($"{ResetLabel}##reset_roboticsOffsetAngleDegR2"))
+            {
+                _config.roboticsOffsetAngleDegR2 = 0f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            
             ImGui.SeparatorText(HardLimits);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
             if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))

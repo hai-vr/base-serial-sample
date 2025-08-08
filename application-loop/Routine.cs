@@ -73,8 +73,8 @@ public class Routine
             configRoboticsSafetyUsePolarMode: _config.roboticsSafetyUsePolarMode,
             configRoboticsUsePidRoot: _config.roboticsUsePidRoot,
             configRoboticsUsePidTarget: _config.roboticsUsePidTarget,
-            configTopmostHardLimit: _config.roboticsTopmostHardLimit
-        );
+            configTopmostHardLimit: _config.roboticsTopmostHardLimit,
+            configOffsetAngleDegR2: _config.roboticsOffsetAngleDegR2);
     }
 
     public void RefreshWebsocketsConfiguration()
