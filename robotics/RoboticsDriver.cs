@@ -21,6 +21,11 @@ public class RoboticsDriver
     private float _configSafetyPolarModeBottommostRadius = 0.4f;
     
     private float _configTopmostHardLimit = 1f;
+    private float _configRotateSystemAngleDegPitch = 0f;
+    
+    //
+    
+    private Quaternion _pitcher = Quaternion.Identity;
     
     //
 
@@ -89,15 +94,30 @@ public class RoboticsDriver
 
         // ## Acquire Inputs
         {
-            // TODO: Handle what happens when the target is way, way off the system.
-            // For instance we may have to consider using a PID controller in order to relativize the position,
-            // and only consider (0, 0, 0) as being a preferred position.
-
             // Confine the input light position to a centered box and make it match the robotics coordinate system.
-            var unclampedL0 = Remap(interpretedData.position.Y / _configVirtualScale, 0f, 1f, -1f, 1f);
-            var unclampedL1 = Remap(-interpretedData.position.Z / _configVirtualScale, -0.5f, 0.5f, -1f, 1f);
-            var unclampedL2 = Remap(interpretedData.position.X / _configVirtualScale, -0.5f, 0.5f, -1f, 1f);
-            var unclampedVectorUntouched = new Vector3(unclampedL0, unclampedL1, unclampedL2);
+            var reorientedPosition = new Vector3(
+                interpretedData.position.Y,
+                -interpretedData.position.Z,
+                interpretedData.position.X
+            );
+            var reorientedNormal = new Vector3(
+                interpretedData.normal.Y,
+                -interpretedData.normal.Z,
+                interpretedData.normal.X
+            );
+            
+            // Rotate the entire system
+            if (_configRotateSystemAngleDegPitch != 0)
+            {
+                reorientedPosition = Vector3.Transform(reorientedPosition, _pitcher);
+                reorientedNormal = Vector3.Transform(reorientedNormal, _pitcher);
+            }
+            
+            var unclampedVectorUntouched = new Vector3(
+                Remap(reorientedPosition.X / _configVirtualScale, 0f, 1f, -1f, 1f),
+                Remap(reorientedPosition.Y / _configVirtualScale, -0.5f, 0.5f, -1f, 1f),
+                Remap(reorientedPosition.Z / _configVirtualScale, -0.5f, 0.5f, -1f, 1f)
+            );
             
             // Optionally, use a PID controller to stabilize the root.
             Vector3 unclampedVector;
@@ -122,9 +142,18 @@ public class RoboticsDriver
                 if (interpretedData.hasNormal)
                 {
                     // Perform a normal to degree conversion. This limits the range from -90 to +90.
-                    _unsafeAngleDegR0 = 0; // Normals have no twist, so we cannot set this.
-                    _unsafeAngleDegR1 = NormalToDegrees(-interpretedData.normal.X);
-                    _unsafeAngleDegR2 = NormalToDegrees(-interpretedData.normal.Z);
+                    if (interpretedData.hasTangent)
+                    {
+                        // TODO: When we have a tangent, we should be able to calculate some twist. However, what's considered 0 degrees?
+                        // Maybe we need to use a PID controller to track the twist.
+                        _unsafeAngleDegR0 = 0;
+                    }
+                    else
+                    {
+                        _unsafeAngleDegR0 = 0; // Normals have no twist, so we cannot set this.
+                    }
+                    _unsafeAngleDegR1 = NormalToDegrees(-reorientedNormal.Z);
+                    _unsafeAngleDegR2 = NormalToDegrees(reorientedNormal.Y);
                 }
             }
         }
@@ -248,7 +277,8 @@ public class RoboticsDriver
         bool configRoboticsUsePidRoot,
         bool configRoboticsUsePidTarget,
         float configTopmostHardLimit,
-        float configOffsetAngleDegR2)
+        float configOffsetAngleDegR2,
+        float configRotateSystemAngleDegPitch)
     {
         _configVirtualScale = configRoboticsVirtualScale;
         _configSafetyUsePolarMode = configRoboticsSafetyUsePolarMode;
@@ -256,5 +286,7 @@ public class RoboticsDriver
         _configUsePidTarget = configRoboticsUsePidTarget;
         _configTopmostHardLimit = configTopmostHardLimit;
         _offsetAngleDegR2 = configOffsetAngleDegR2;
+        _configRotateSystemAngleDegPitch = configRotateSystemAngleDegPitch;
+        _pitcher = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), -_configRotateSystemAngleDegPitch * (float)Math.PI / 180f);
     }
 }

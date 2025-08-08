@@ -350,7 +350,33 @@ public class UiMainApplication
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
             
             ImGui.NewLine();
+            ImGui.SeparatorText("Rotate machine");
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
+            if (ImGui.Button($"{ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
+            {
+                _config.roboticsRotateSystemAngleDegPitch = 0f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("90##90_roboticsRotateSystemAngleDegPitch"))
+            {
+                _config.roboticsRotateSystemAngleDegPitch = 90f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("-90##neg90_roboticsRotateSystemAngleDegPitch"))
+            {
+                _config.roboticsRotateSystemAngleDegPitch = -90f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            ImGui.SameLine();
+            if (ImGui.Button("180##neg180_roboticsRotateSystemAngleDegPitch"))
+            {
+                _config.roboticsRotateSystemAngleDegPitch = 180;
+                anyRoboticsConfigurationChanged = true;
+            }
             
+            ImGui.NewLine();
             ImGui.SeparatorText(OffsetsLabel);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat(OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
             if (ImGui.Button($"{ResetLabel}##reset_roboticsOffsetAngleDegR2"))

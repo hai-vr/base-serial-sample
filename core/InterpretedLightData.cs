@@ -11,4 +11,7 @@ public struct InterpretedLightData
     public Vector3 normal;
     public bool isHole;
     public bool isRing;
+    
+    public bool hasTangent;
+    public Vector3 tangent;
 }

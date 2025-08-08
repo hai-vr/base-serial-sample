@@ -74,7 +74,8 @@ public class Routine
             configRoboticsUsePidRoot: _config.roboticsUsePidRoot,
             configRoboticsUsePidTarget: _config.roboticsUsePidTarget,
             configTopmostHardLimit: _config.roboticsTopmostHardLimit,
-            configOffsetAngleDegR2: _config.roboticsOffsetAngleDegR2);
+            configOffsetAngleDegR2: _config.roboticsOffsetAngleDegR2,
+            configRotateSystemAngleDegPitch: _config.roboticsRotateSystemAngleDegPitch);
     }
 
     public void RefreshWebsocketsConfiguration()
@@ -327,23 +328,25 @@ public class Routine
 
     public void ReceiveDirectControl(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ)
     {
-        InternalDirectLightData(positionX, positionY, positionZ, normalX, normalY, normalZ);
+        InternalDirectLightData(new Vector3(positionX, positionY, positionZ), new Vector3(normalX, normalY, normalZ), null);
     }
 
     public void ReceiveDirectControl(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ, float tangentX, float tangentY, float tangentZ)
     {
-        InternalDirectLightData(positionX, positionY, positionZ, normalX, normalY, normalZ);
+        InternalDirectLightData(new Vector3(positionX, positionY, positionZ), new Vector3(normalX, normalY, normalZ), new Vector3(tangentX, tangentY, tangentZ));;
     }
 
-    private void InternalDirectLightData(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ)
+    private void InternalDirectLightData(Vector3 position, Vector3 normalUntrusted, Vector3? tangentUntrustedNullable)
     {
         _hasReceivedDirectLightData = true;
         _directLightData = new InterpretedLightData
         {
-            position = new Vector3(positionX, positionY, positionZ),
-            normal = Vector3.Normalize(new Vector3(normalX, normalY, normalZ)),
+            position = position,
+            normal = Vector3.Normalize(normalUntrusted),
+            tangent = tangentUntrustedNullable != null ? Vector3.Normalize(tangentUntrustedNullable.Value) : Vector3.Zero,
             hasTarget = true,
-            hasNormal = true
+            hasNormal = true,
+            hasTangent = tangentUntrustedNullable != null
         };
         _directExtraction++;
     }

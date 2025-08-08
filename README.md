@@ -163,7 +163,7 @@ new data in the shader for future versions.
 
 ### WebSockets as an alternative input system
 
-If *WebSockets* support is enabled, we will expose a websocket on port **56247** at url `ws://localhost:56247/ws`.
+If *WebSockets* support is enabled, we will expose a websocket on port **56247** at url `ws://localhost:56247/ws`
 
 Send the following string to it that represents an interpreted position and normal:
 ```text

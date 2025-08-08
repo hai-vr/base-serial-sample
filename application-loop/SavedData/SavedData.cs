@@ -32,6 +32,7 @@ public class SavedData
     public bool roboticsUsePidTarget = false;
     public bool roboticsSafetyUsePolarMode = true;
     public float roboticsTopmostHardLimit = 1f;
+    public float roboticsRotateSystemAngleDegPitch = 0f;
     public float roboticsOffsetAngleDegR2 = 0f;
 
     public bool useWebsockets = false;
