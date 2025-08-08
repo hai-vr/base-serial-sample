@@ -40,6 +40,7 @@ public class UiMainApplication
     private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
     private const string MsgOpenVrUnavailable = "OpenVR is not running.";
     private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
+    private const string RoboticsAdvancedLabel = "Robotics (Advanced)";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -158,7 +159,8 @@ public class UiMainApplication
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
-        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged = _roboticsTab.RoboticsTab(); });
+        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged |= _roboticsTab.RoboticsTab(); });
+        _scrollManager.MakeTab(RoboticsAdvancedLabel, () => { anyChanged |= _roboticsTab.RoboticsAdvancedTab(); });
         _scrollManager.MakeTab(DataCalibrationLabel, () =>
         {
             ImGui.SeparatorText(ExtractorPreferenceLabel);

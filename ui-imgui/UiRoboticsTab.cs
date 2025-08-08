@@ -57,12 +57,15 @@ public class UiRoboticsTab
         ImGui.NewLine();
         ImGui.SeparatorText(HardLimits);
         anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
+        anyRoboticsConfigurationChanged |= ImGui.Checkbox("Compensate virtual scale", ref _config.roboticsCompensateVirtualScaleHardLimit);
         if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))
         {
             _config.roboticsTopmostHardLimit = 1f;
+            _config.roboticsCompensateVirtualScaleHardLimit = true;
             anyRoboticsConfigurationChanged = true;
         }
         ImGui.TextWrapped(MsgHardLimitsHelper);
+        if (_config.roboticsTopmostHardLimit != 1f || !_config.roboticsCompensateVirtualScaleHardLimit) ResetButtonWarning(MsgNotDefaultWarning);
             
         ImGui.NewLine();
         ImGui.SeparatorText(RoboticsConfigurationLabel);
@@ -72,34 +75,6 @@ public class UiRoboticsTab
         anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
 
         {
-            ImGui.NewLine();
-            ImGui.SeparatorText(RotateMachineLabel);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
-            if (ImGui.Button($"{ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 0f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("90##90_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 90f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("-90##neg90_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = -90f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("180##neg180_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 180;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.TextWrapped(MsgRotateMachineHelper);
-            if (_config.roboticsRotateSystemAngleDegPitch != 0f) ResetButtonWarning(MsgNotDefaultWarning);
         }
             
         ImGui.NewLine();
@@ -121,6 +96,12 @@ public class UiRoboticsTab
         {
             _uiActions.ConfigRoboticsUpdated();
         }
+
+        if (_config.roboticsRotateSystemAngleDegPitch != 0)
+        {
+            ImGui.NewLine();
+            anyRoboticsConfigurationChanged |= RoboticsAdvancedTab();
+        }
             
         ImGui.NewLine();
         ImGui.SeparatorText(CommandLabel);
@@ -139,6 +120,43 @@ public class UiRoboticsTab
         }
         ImGui.EndDisabled();
             
+        return anyRoboticsConfigurationChanged;
+    }
+
+    public bool RoboticsAdvancedTab()
+    {
+        var anyRoboticsConfigurationChanged = false;
+        
+        ImGui.SeparatorText(RotateMachineLabel);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (0 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, 0, 90);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (-90 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, -90, 90);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (-180 to 180)", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
+        if (ImGui.Button($"{ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
+        {
+            _config.roboticsRotateSystemAngleDegPitch = 0f;
+            anyRoboticsConfigurationChanged = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("90##90_roboticsRotateSystemAngleDegPitch"))
+        {
+            _config.roboticsRotateSystemAngleDegPitch = 90f;
+            anyRoboticsConfigurationChanged = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("-90##neg90_roboticsRotateSystemAngleDegPitch"))
+        {
+            _config.roboticsRotateSystemAngleDegPitch = -90f;
+            anyRoboticsConfigurationChanged = true;
+        }
+        ImGui.SameLine();
+        if (ImGui.Button("180##neg180_roboticsRotateSystemAngleDegPitch"))
+        {
+            _config.roboticsRotateSystemAngleDegPitch = 180;
+            anyRoboticsConfigurationChanged = true;
+        }
+        ImGui.TextWrapped(MsgRotateMachineHelper);
+        if (_config.roboticsRotateSystemAngleDegPitch != 0f) ResetButtonWarning(MsgNotDefaultWarning);
+
         return anyRoboticsConfigurationChanged;
     }
 

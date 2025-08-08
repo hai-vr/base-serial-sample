@@ -75,7 +75,8 @@ public class Routine
             configRoboticsUsePidTarget: _config.roboticsUsePidTarget,
             configTopmostHardLimit: _config.roboticsTopmostHardLimit,
             configOffsetAngleDegR2: _config.roboticsOffsetAngleDegR2,
-            configRotateSystemAngleDegPitch: _config.roboticsRotateSystemAngleDegPitch);
+            configRotateSystemAngleDegPitch: _config.roboticsRotateSystemAngleDegPitch,
+            configCompensateVirtualScaleHardLimit: _config.roboticsCompensateVirtualScaleHardLimit);
     }
 
     public void RefreshWebsocketsConfiguration()
