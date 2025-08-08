@@ -6,6 +6,9 @@ namespace Hai.PositionSystemToExternalProgram.Robotics;
 
 public class RoboticsDriver
 {
+    // FIXME: Temporarily disabled PidRoot because the PID controller is unstable.
+    private const bool TEMP_CanUsePidRoot = false;
+    
     private float _configVirtualScale = 1f;
     
     private bool _configUsePidRoot = false;
@@ -70,6 +73,11 @@ public class RoboticsDriver
         };
     }
 
+    private bool IsUsingPidRoot()
+    {
+        return TEMP_CanUsePidRoot && _configUsePidRoot;
+    }
+
     public void ProvideTargets(InterpretedLightData interpretedData)
     {
         if (!interpretedData.hasTarget)
@@ -93,7 +101,7 @@ public class RoboticsDriver
             
             // Optionally, use a PID controller to stabilize the root.
             Vector3 unclampedVector;
-            if (_configUsePidRoot)
+            if (IsUsingPidRoot())
             {
                 _pidRootTarget = unclampedVectorUntouched;
                 unclampedVector = unclampedVectorUntouched - _pidRootCurrent;
@@ -104,7 +112,7 @@ public class RoboticsDriver
             }
             
             // If we use the root PID controller, the length does not matter because it will readjust anyway.
-            if (_configUsePidRoot || unclampedVector.Length() <= _configSafetyDistanceBeyondWhichInputsAreIgnored)
+            if (IsUsingPidRoot() || unclampedVector.Length() <= _configSafetyDistanceBeyondWhichInputsAreIgnored)
             {
                 _unsafeJoystickTargetL0 = Clamp(unclampedVector.X, -1f, 1f);
                 _unsafeJoystickTargetL1 = Clamp(unclampedVector.Y, -1f, 1f);
@@ -183,7 +191,7 @@ public class RoboticsDriver
     public RoboticsCoordinates UpdateAndGetCoordinates(long deltaTimeMs)
     {
         var deltaTime = deltaTimeMs / 1000f;
-        if (_configUsePidRoot)
+        if (IsUsingPidRoot())
         {
             _pidRootCurrent += _rootPositionPid.Update(deltaTime, _pidRootCurrent, _pidRootTarget);
         }

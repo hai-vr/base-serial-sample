@@ -344,7 +344,9 @@ public class UiMainApplication
             
             ImGui.NewLine();
             ImGui.SeparatorText(RoboticsConfigurationLabel);
+                ImGui.BeginDisabled(); // TEMP
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (Root PID controller)", ref _config.roboticsUsePidRoot);
+                ImGui.EndDisabled(); // TEMP
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
             
             ImGui.NewLine();
