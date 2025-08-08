@@ -8,7 +8,7 @@ Other users may be able to remotely control the position and rotation of your ro
 
 In addition:
 - The position and rotation of the camera in world space is also extracted. This could be used to pin SteamVR overlays in world space.
-- This optionally exposes a WebSocket service to enable direct control of the robotic arm from virtual space systems like Resonite.
+- This optionally exposes a WebSocket service to enable direct control of the robotic arm from virtual space systems like *Resonite*.
 
 # User documentation
 
@@ -50,7 +50,7 @@ Core projects:
 
 External system projects:
 - **extractor-gdi**, **extractor-openvr**, and **tcode** interact with various external system APIs.
-- **service-websockets** is only used if *Resonite* support is enabled; this skips lights altogether.
+- **service-websockets** is only used if *WebSockets* support is enabled; this skips lights altogether for programs like *Resonite*.
 
 Unity:
 - **Packages/dev.hai-vr.alleyway.position-system-to-external-program/** contains the shader and prefab.
@@ -65,7 +65,7 @@ Data extraction goes through this:
 
 ![DataExtraction.png](DataExtraction.png)
 
-If *Resonite* support is enabled, the position is submitted directly from a Websocket component within Resonite,
+If *WebSockets* support is enabled, the position can be submitted directly from other programs, such as a Websocket component within *Resonite*,
 rather than going through data extraction.
 
 ### Data
@@ -161,9 +161,9 @@ The CRC-32 hash is based on groups 1 to 51 (inclusive). The data in 36 to 51 (in
 However, including them as part of the checksum ensures that it is not a breaking change to add a few additional pieces of
 new data in the shader for future versions.
 
-### Websockets as an alternative input system
+### WebSockets as an alternative input system
 
-If *Resonite* support is enabled, we will expose a websocket on port **56247** at url `ws://localhost:56247/ws`.
+If *WebSockets* support is enabled, we will expose a websocket on port **56247** at url `ws://localhost:56247/ws`.
 
 Send the following string to it that represents an interpreted position and normal:
 ```text

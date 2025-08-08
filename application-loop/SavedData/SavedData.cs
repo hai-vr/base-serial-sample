@@ -34,7 +34,7 @@ public class SavedData
     public float roboticsTopmostHardLimit = 1f;
     public float roboticsOffsetAngleDegR2 = 0f;
 
-    public bool useResoniteWebsockets = false;
+    public bool useWebsockets = false;
 
     public void SetWindowCoordinatesToDefault()
     {

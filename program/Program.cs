@@ -44,9 +44,9 @@ internal class MainApp
         _routine = new Routine(config, layout, ovrStarter, ovrExtractor, windowGdiExtractor, toBits, decoder, interpreter, roboticsDriver, serial);
         
         // Misc
-        var resoniteWebsockets = new WebsocketsStarter(new WebsocketActions(_routine));
-        _routine.OnWebsocketStartRequested += resoniteWebsockets.Start;
-        _routine.OnWebsocketStopRequested += resoniteWebsockets.Stop;
+        var websockets = new WebsocketsStarter(new WebsocketActions(_routine));
+        _routine.OnWebsocketStartRequested += websockets.Start;
+        _routine.OnWebsocketStopRequested += websockets.Stop;
         
         // UI
         _uiMain = new UiMainApplication(new UiActions(_routine), config);

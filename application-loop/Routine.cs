@@ -79,13 +79,13 @@ public class Routine
 
     public void RefreshWebsocketsConfiguration()
     {
-        if (_config.useResoniteWebsockets && !_websocketStarted)
+        if (_config.useWebsockets && !_websocketStarted)
         {
             _websocketStarted = true;
             OnWebsocketStartRequested?.Invoke(IWebsocketActions.WebsocketDefaultPort);
         }
 
-        if (!_config.useResoniteWebsockets && _websocketStarted)
+        if (!_config.useWebsockets && _websocketStarted)
         {
             _websocketStarted = false;
             OnWebsocketStopRequested?.Invoke();

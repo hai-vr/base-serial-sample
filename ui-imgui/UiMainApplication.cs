@@ -252,8 +252,8 @@ public class UiMainApplication
             
             ImGui.Columns(1);
             
-            ImGui.SeparatorText("Resonite Websockets");
-            var websocketChanged = ImGui.Checkbox($"Export websockets on port {IWebsocketActions.WebsocketDefaultPort}", ref _config.useResoniteWebsockets);
+            ImGui.SeparatorText("WebSockets support");
+            var websocketChanged = ImGui.Checkbox($"Expose WebSockets on port {IWebsocketActions.WebsocketDefaultPort}", ref _config.useWebsockets);
             if (websocketChanged)
             {
                 _uiActions.ConfigWebsocketsUpdated();
@@ -349,7 +349,6 @@ public class UiMainApplication
             
             ImGui.NewLine();
             
-            ImGui.NewLine();
             ImGui.SeparatorText(OffsetsLabel);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat(OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
             if (ImGui.Button($"{ResetLabel}##reset_roboticsOffsetAngleDegR2"))
@@ -358,6 +357,7 @@ public class UiMainApplication
                 anyRoboticsConfigurationChanged = true;
             }
             
+            ImGui.NewLine();
             ImGui.SeparatorText(HardLimits);
             anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
             if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))
