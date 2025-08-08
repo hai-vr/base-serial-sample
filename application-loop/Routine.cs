@@ -72,7 +72,8 @@ public class Routine
             configRoboticsVirtualScale: _config.roboticsVirtualScale,
             configRoboticsSafetyUsePolarMode: _config.roboticsSafetyUsePolarMode,
             configRoboticsUsePidRoot: _config.roboticsUsePidRoot,
-            configRoboticsUsePidTarget: _config.roboticsUsePidTarget
+            configRoboticsUsePidTarget: _config.roboticsUsePidTarget,
+            configTopmostHardLimit: _config.roboticsTopmostHardLimit
         );
     }
 

@@ -17,6 +17,8 @@ public class RoboticsDriver
     private float _configSafetyPolarModeUppermostRadius = 1f;
     private float _configSafetyPolarModeBottommostRadius = 0.4f;
     
+    private float _configTopmostHardLimit = 1f;
+    
     //
 
     private float _unsafeJoystickTargetL0;
@@ -151,7 +153,17 @@ public class RoboticsDriver
         // because the input was already clamped.
         // Using offsets instead of reducing the motion space has the advantage that the motion in virtual space
         // is still consistent in scale in comparison to the other axis.
-        _safeJoystickTargetL0 = Clamp(whichVector.X + _offsetJoystickTargetL0, -1f, 1f);
+        var workX = whichVector.X + _offsetJoystickTargetL0;
+        if (_configTopmostHardLimit < 1f)
+        {
+            var joystickLimit = _configTopmostHardLimit * 2 - 1;
+            Console.WriteLine(joystickLimit);
+            if (workX > joystickLimit)
+            {
+                workX = joystickLimit;
+            }
+        }
+        _safeJoystickTargetL0 = Clamp(workX, -1f, 1f);
         _safeJoystickTargetL1 = Clamp(whichVector.Y + _offsetJoystickTargetL1, -1f, 1f);
         _safeJoystickTargetL2 = Clamp(whichVector.Z + _offsetJoystickTargetL2, -1f, 1f);
 
@@ -223,11 +235,17 @@ public class RoboticsDriver
         return angleDegrees;
     }
 
-    public void UpdateConfiguration(float configRoboticsVirtualScale, bool configRoboticsSafetyUsePolarMode, bool configRoboticsUsePidRoot, bool configRoboticsUsePidTarget)
+    public void UpdateConfiguration(
+        float configRoboticsVirtualScale,
+        bool configRoboticsSafetyUsePolarMode,
+        bool configRoboticsUsePidRoot,
+        bool configRoboticsUsePidTarget,
+        float configTopmostHardLimit)
     {
         _configVirtualScale = configRoboticsVirtualScale;
         _configSafetyUsePolarMode = configRoboticsSafetyUsePolarMode;
         _configUsePidRoot = configRoboticsUsePidRoot;
         _configUsePidTarget = configRoboticsUsePidTarget;
+        _configTopmostHardLimit = configTopmostHardLimit;
     }
 }

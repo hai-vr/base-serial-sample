@@ -31,6 +31,7 @@ public class SavedData
     public bool roboticsUsePidRoot = false;
     public bool roboticsUsePidTarget = false;
     public bool roboticsSafetyUsePolarMode = true;
+    public float roboticsTopmostHardLimit = 1f;
 
     public bool useResoniteWebsockets = false;
 

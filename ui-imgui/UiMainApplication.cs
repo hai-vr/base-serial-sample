@@ -14,20 +14,31 @@ public class UiMainApplication
     private const ImGuiWindowFlags WindowFlagsNoCollapse = WindowFlags | ImGuiWindowFlags.NoCollapse;
 
     private const string AutoUpdateLabel = "Auto-update";
+    private const string CameraLabel = "Camera";
     private const string CloseSerialLabel = "Close serial";
+    private const string CommandLabel = "Command";
+    private const string DataCalibrationLabel = "Data calibration";
     private const string DataLabel = "Data";
     private const string DebugLabel = "Debug";
     private const string ExtractorPreferenceLabel = "Extractor Preference";
+    private const string HardLimits = "Hard limits";
     private const string InterpretedDataLabel = "Interpreted data";
     private const string LightsLabel = "Lights";
+    private const string LimitMovementWithinACircleLabel = "Limit movement within a circle";
     private const string ModeLabel = "Mode";
+    private const string MsgDataNotInitialized = "Data not initialized";
     private const string OpenVrLabel = "OpenVR";
     private const string RefreshLabel = "Refresh";
+    private const string ResetLabel = "Reset";
     private const string ResetToDefaultsExceptWindowNameLabel = "Reset to defaults (except Window name)";
     private const string ResetToDefaultsLabel = "Reset to defaults";
+    private const string RoboticsConfigurationLabel = "Robotics configuration";
+    private const string RoboticsLabel = "Robotics";
+    private const string SafetySettingsLabel = "Safety settings";
     private const string SpoutLabel = "Spout";
     private const string SubmitLabel = "Submit";
     private const string UseRightEyeLabel = "Use right eye";
+    private const string VirtualScaleLabel = "Virtual scale";
     private const string WindowLabel = "Window";
     private const string WindowNameLabel = "Window name";
     
@@ -38,14 +49,8 @@ public class UiMainApplication
     private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
     private const string MsgOpenVrUnavailable = "OpenVR is not running.";
     private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
-    private const string RoboticsConfigurationLabel = "Robotics configuration";
-    private const string DataCalibrationLabel = "Data calibration";
-    private const string RoboticsLabel = "Robotics";
-    private const string CommandLabel = "Command";
-    private const string SafetySettingsLabel = "Safety settings";
-    private const string VirtualScaleLabel = "Virtual scale";
-    private const string MsgDataNotInitialized = "Data not initialized";
-    private const string CameraLabel = "Camera";
+    private const string MsgVirtualScaleHelper = "A value greater than 1 means it takes more travel in the virtual space to move the same distance in the physical space.";
+    private const string MsgHardLimitsHelper = "Hard limits are applied after PID controllers. PID controllers will remain unaware that a limit has been applied.";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -325,14 +330,15 @@ public class UiMainApplication
             var anyRoboticsConfigurationChanged = false;
             
             ImGui.SeparatorText(VirtualScaleLabel);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Virtual scale (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
             if (ImGui.Button("Reset virtual scale"))
             {
                 _config.roboticsVirtualScale = 1f;
                 anyRoboticsConfigurationChanged = true;
             }
+            ImGui.TextWrapped(MsgVirtualScaleHelper);
             
             ImGui.NewLine();
             ImGui.SeparatorText(RoboticsConfigurationLabel);
@@ -340,8 +346,18 @@ public class UiMainApplication
             anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
             
             ImGui.NewLine();
+            ImGui.SeparatorText(HardLimits);
+            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
+            if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))
+            {
+                _config.roboticsTopmostHardLimit = 1f;
+                anyRoboticsConfigurationChanged = true;
+            }
+            ImGui.TextWrapped(MsgHardLimitsHelper);
+            
+            ImGui.NewLine();
             ImGui.SeparatorText(SafetySettingsLabel);
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Limit movement within a circle", ref _config.roboticsSafetyUsePolarMode);
+            anyRoboticsConfigurationChanged |= ImGui.Checkbox(LimitMovementWithinACircleLabel, ref _config.roboticsSafetyUsePolarMode);
 
             if (anyRoboticsConfigurationChanged)
             {
@@ -364,6 +380,7 @@ public class UiMainApplication
                 _uiActions.Submit();
             }
             ImGui.EndDisabled();
+            
             return anyRoboticsConfigurationChanged;
         }
         _scrollManager.MakeTab(VERSION.miniVersion, () =>
