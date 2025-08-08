@@ -13,34 +13,23 @@ public class UiMainApplication
     private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoResize;
     private const ImGuiWindowFlags WindowFlagsNoCollapse = WindowFlags | ImGuiWindowFlags.NoCollapse;
 
-    private const string AutoUpdateLabel = "Auto-update";
     private const string CameraLabel = "Camera";
     private const string CloseSerialLabel = "Close serial";
-    private const string CommandLabel = "Command";
     private const string DataCalibrationLabel = "Data calibration";
     private const string DataLabel = "Data";
     private const string DebugLabel = "Debug";
     private const string ExtractorPreferenceLabel = "Extractor Preference";
-    private const string HardLimits = "Hard limits";
     private const string InterpretedDataLabel = "Interpreted data";
     private const string LightsLabel = "Lights";
-    private const string LimitMovementWithinACircleLabel = "Limit movement within a circle";
     private const string ModeLabel = "Mode";
     private const string MsgDataNotInitialized = "Data not initialized";
-    private const string OffsetPitchAngleLabel = "Offset pitch angle";
-    private const string OffsetsLabel = "Offsets";
     private const string OpenVrLabel = "OpenVR";
     private const string RefreshLabel = "Refresh";
-    private const string ResetLabel = "Reset";
     private const string ResetToDefaultsExceptWindowNameLabel = "Reset to defaults (except Window name)";
     private const string ResetToDefaultsLabel = "Reset to defaults";
-    private const string RoboticsConfigurationLabel = "Robotics configuration";
     private const string RoboticsLabel = "Robotics";
-    private const string SafetySettingsLabel = "Safety settings";
     private const string SpoutLabel = "Spout";
-    private const string SubmitLabel = "Submit";
     private const string UseRightEyeLabel = "Use right eye";
-    private const string VirtualScaleLabel = "Virtual scale";
     private const string WindowLabel = "Window";
     private const string WindowNameLabel = "Window name";
     
@@ -51,8 +40,6 @@ public class UiMainApplication
     private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
     private const string MsgOpenVrUnavailable = "OpenVR is not running.";
     private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
-    private const string MsgVirtualScaleHelper = "A value greater than 1 means it takes more travel in the virtual space to move the same distance in the physical space.";
-    private const string MsgHardLimitsHelper = "Hard limits are applied after PID controllers. PID controllers will remain unaware that a limit has been applied.";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -69,11 +56,15 @@ public class UiMainApplication
     private IntPtr _textureId;
     private readonly string[] _extractorNames;
 
+    private readonly UiRoboticsTab _roboticsTab;
+
     public UiMainApplication(UiActions uiActions, SavedData config)
     {
         _uiActions = uiActions;
         _config = config;
         _extractorNames = Enum.GetNames<ExtractorConfig>();
+
+        _roboticsTab = new UiRoboticsTab(_uiActions, config);
     }
 
     public void Initialize()
@@ -167,7 +158,7 @@ public class UiMainApplication
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
-        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged = RoboticsTab(); });
+        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged = _roboticsTab.RoboticsTab(); });
         _scrollManager.MakeTab(DataCalibrationLabel, () =>
         {
             ImGui.SeparatorText(ExtractorPreferenceLabel);
@@ -326,103 +317,7 @@ public class UiMainApplication
             });
             ImGui.EndTabBar();
         });
-        
-        bool RoboticsTab()
-        {
-            var anyRoboticsConfigurationChanged = false;
-            
-            ImGui.SeparatorText(VirtualScaleLabel);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
-            if (ImGui.Button("Reset virtual scale"))
-            {
-                _config.roboticsVirtualScale = 1f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.TextWrapped(MsgVirtualScaleHelper);
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText(RoboticsConfigurationLabel);
-                ImGui.BeginDisabled(); // TEMP
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (Root PID controller)", ref _config.roboticsUsePidRoot);
-                ImGui.EndDisabled(); // TEMP
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText("Rotate machine");
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
-            if (ImGui.Button($"{ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 0f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("90##90_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 90f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("-90##neg90_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = -90f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.SameLine();
-            if (ImGui.Button("180##neg180_roboticsRotateSystemAngleDegPitch"))
-            {
-                _config.roboticsRotateSystemAngleDegPitch = 180;
-                anyRoboticsConfigurationChanged = true;
-            }
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText(OffsetsLabel);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat(OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
-            if (ImGui.Button($"{ResetLabel}##reset_roboticsOffsetAngleDegR2"))
-            {
-                _config.roboticsOffsetAngleDegR2 = 0f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText(HardLimits);
-            anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
-            if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))
-            {
-                _config.roboticsTopmostHardLimit = 1f;
-                anyRoboticsConfigurationChanged = true;
-            }
-            ImGui.TextWrapped(MsgHardLimitsHelper);
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText(SafetySettingsLabel);
-            anyRoboticsConfigurationChanged |= ImGui.Checkbox(LimitMovementWithinACircleLabel, ref _config.roboticsSafetyUsePolarMode);
 
-            if (anyRoboticsConfigurationChanged)
-            {
-                _uiActions.ConfigRoboticsUpdated();
-            }
-            
-            ImGui.NewLine();
-            ImGui.SeparatorText(CommandLabel);
-            ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
-            ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
-            ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);
-            ImGui.SliderInt("R0", ref rawData.R0, 0, 9999);
-            ImGui.SliderInt("R1", ref rawData.R1, 0, 9999);
-            ImGui.SliderInt("R2", ref rawData.R2, 0, 9999);
-            ImGui.Checkbox(AutoUpdateLabel, ref rawData.autoUpdate);
-            
-            ImGui.BeginDisabled(!isSerialOpen || rawData.autoUpdate);
-            if (ImGui.Button(SubmitLabel))
-            {
-                _uiActions.Submit();
-            }
-            ImGui.EndDisabled();
-            
-            return anyRoboticsConfigurationChanged;
-        }
         _scrollManager.MakeTab(VERSION.miniVersion, () =>
         {
             ImGui.Text($"Version: {VERSION.version}");
