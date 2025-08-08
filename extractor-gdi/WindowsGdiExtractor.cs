@@ -41,6 +41,8 @@ public class WindowGdiExtractor
     private byte[] _marshalData;
     private byte[] _marshalDataB;
 
+    private readonly HashSet<IntPtr> _ignoreThosePtrs = new();
+
     public WindowGdiExtractor()
     {
         _time = Stopwatch.StartNew();
@@ -58,8 +60,24 @@ public class WindowGdiExtractor
         
         var sw = Stopwatch.StartNew();
         // This can take a long time, like 350ms
-        var wnds = WindowNameBiz.FindWindowsWithText(_ => true)
-            .Select(intPtr => (WindowNameBiz.GetWindowText(intPtr), intPtr))
+        var wnds = WindowNameBiz.FindWindows()
+            .Where(intPtr => !_ignoreThosePtrs.Contains(intPtr))
+            .Where(intPtr =>
+            {
+                var isWindowVisible = WindowNameBiz.IsWindowVisible(intPtr);
+                if (!isWindowVisible) _ignoreThosePtrs.Add(intPtr);
+                return isWindowVisible;
+            })
+            .Select(intPtr =>
+            {
+                var sw = Stopwatch.StartNew();
+                var name = WindowNameBiz.GetWindowText(intPtr);
+                if (sw.ElapsedMilliseconds > 3)
+                {
+                    Console.WriteLine($"Took {sw.ElapsedMilliseconds}ms to get window text of {name}");
+                }
+                return (name, intPtr);
+            })
             .Where(tuple =>
             {
                 var (windowName, _) = tuple;

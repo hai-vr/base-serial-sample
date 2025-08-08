@@ -18,9 +18,15 @@ public static class WindowNameBiz
     [DllImport("user32.dll")] private static extern bool EnumWindows(EnumWindowsProc enumProc, IntPtr lParam);
     [DllImport("user32.dll", SetLastError = true)] static extern IntPtr SendMessageTimeout(IntPtr hWnd, int msg, int wParam, StringBuilder lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
     [DllImport("user32.dll", SetLastError = true)] static extern IntPtr SendMessageTimeout(IntPtr hWnd, int msg, int wParam, int lParam, uint fuFlags, uint uTimeout, out IntPtr lpdwResult);
-
+    [DllImport("user32.dll")]
+    internal static extern bool IsWindowVisible(IntPtr hWnd);
     /// Return true to continue searching, false to halt enumeration (e.g. when found first result).
     public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+    public static IEnumerable<IntPtr> FindWindows()
+    {
+        return EnumerateWindows((_, _) => true);
+    }
 
     public static IEnumerable<IntPtr> FindWindowsWithText(Predicate<string> predicateFn)
     {
