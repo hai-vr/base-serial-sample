@@ -301,6 +301,9 @@ public class UiMainApplication
                     ImGui.Text($"Camera Rotation X: {decodedData.CameraRotation.X}");
                     ImGui.Text($"Camera Rotation Y: {decodedData.CameraRotation.Y}");
                     ImGui.Text($"Camera Rotation Z: {decodedData.CameraRotation.Z}");
+                    ImGui.NewLine();
+                    ImGui.SeparatorText("SteamVR playspace");
+                    ImGui.Text($"Estimated scale: {_uiActions.VirtualScale()}");
                 }
             });
             _scrollManager.MakeTab(DataLabel, () =>

@@ -25,6 +25,7 @@ public class Routine
     private readonly PositionSystemDataLayout _layout;
     private readonly DpsLightInterpreter _interpreter;
     private readonly RoboticsDriver _roboticsDriver;
+    private readonly ScaleEvaluator _scaleEvaluator;
 
     public bool IsOpenVrRunning { get; private set; }
     public TcodeData RawSerialData { get; }
@@ -34,6 +35,7 @@ public class Routine
     public bool[] Bits { get; private set; }
     public DecodedData Data { get; }
     public InterpretedLightData InterpretedData { get; private set; }
+    public float VirtualScale { get; private set; } = 1f;
     
     //
     
@@ -135,6 +137,8 @@ public class Routine
         {
             Success = false
         };
+
+        _scaleEvaluator = new ScaleEvaluator();
     }
 
     public void Enqueue(Action action)
@@ -258,6 +262,14 @@ public class Routine
                 InterpretedData = _directLightData;
                 _roboticsDriver.ProvideTargets(InterpretedData);
             }
+        }
+
+        if (IsOpenVrRunning && Data.validity == DataValidity.Ok && Data.Version >= 1_001_000)
+        {
+            _ovrExtractor.Additions.UpdatePoses();
+            var hmdPosition = _ovrExtractor.Additions.GetHmdPositionAsUnityVector();
+            _scaleEvaluator.Evaluate(hmdPosition, Data.CameraPosition);
+            VirtualScale = _scaleEvaluator.VirtualScale;
         }
 
         // TODO: Split image extraction logic update rate from robotics logic update rate.

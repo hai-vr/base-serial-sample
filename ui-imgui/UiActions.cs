@@ -39,6 +39,7 @@ public class UiActions
     public ExtractionCoordinates WindowCoordinates() => _routine.WindowCoordinates;
     public DecodedData Data() => _routine.Data;
     public InterpretedLightData InterpretedData() => _routine.InterpretedData;
+    public float VirtualScale() => _routine.VirtualScale;
 
     public string[] FetchPortNames()
     {

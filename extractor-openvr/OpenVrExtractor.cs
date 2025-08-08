@@ -33,6 +33,8 @@ public class OpenVrExtractor
     private byte[] _colorData;
     private byte[] _colorDataB;
 
+    public OpenVrAdditions Additions { get; }
+
     public class EyeResource
     {
         public IntPtr pResourceView;
@@ -68,6 +70,8 @@ public class OpenVrExtractor
             _right.Release();
         };
         // TODO: ReleaseMirrorTextureD3D11 when we exit this app?
+
+        Additions = new OpenVrAdditions();
     }
 
     private bool TryInitializeDevice()
