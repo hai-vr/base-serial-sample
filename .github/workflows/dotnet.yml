@@ -9,10 +9,10 @@ on:
   workflow_dispatch:
 
 env:
-  outputAppFolder: "PositionSystemToExternalProgram"
+  outputAppFolder: "PositionSystem"
   netProject: "program"
   netCsProj: "program/program.csproj"
-  packageName: "dev.hai-vr.alleyway.position-system-to-external-program"
+  packageName: "dev.hai-vr.alleyway.position-system"
   applicationName: "position-system"
 
 permissions:
@@ -25,8 +25,8 @@ jobs:
     outputs:
       version: ${{ steps.version.outputs.prop }}
     steps:
-      - name: Enable Git long paths (Windows)
-        run: git config --global core.longpaths true
+#      - name: Enable Git long paths (Windows)
+#        run: git config --global core.longpaths true
 
       - name: Checkout
         uses: actions/checkout@v4

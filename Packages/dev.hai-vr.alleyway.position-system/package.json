@@ -1,0 +1,16 @@
+{
+  "name": "dev.hai-vr.alleyway.position-system",
+  "displayName": "Alleyway - Position System",
+  "version": "0.1.0-beta.7",
+  "unity": "2019.4",
+  "description": "Position System to External Program https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program",
+  "author" : {
+    "name" : "Haï~"
+  },
+  "vpmDependencies": {
+  },
+  "url" : "https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program",
+  "documentationUrl": "https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program",
+  "changelogUrl": "https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program/changelogs",
+  "license": "MIT"
+}

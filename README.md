@@ -53,7 +53,7 @@ External system projects:
 - **service-websockets** is only used if *WebSockets* support is enabled; this skips lights altogether for programs like *Resonite*.
 
 Unity:
-- **Packages/dev.hai-vr.alleyway.position-system-to-external-program/** contains the shader and prefab.
+- **Packages/dev.hai-vr.alleyway.position-system/** contains the shader and prefab.
 
 ### Data extraction procedure
 
