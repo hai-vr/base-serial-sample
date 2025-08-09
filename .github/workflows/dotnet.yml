@@ -81,6 +81,14 @@ jobs:
           directory: "Packages/${{env.packageName}}/"
           filename: "../../${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip" # make the zip file two directories up, since we start two directories in above
 
+      - run: find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
+        
+      - name: Create UnityPackage
+        uses: pCYSl5EDgo/create-unitypackage@cfcd3cf0391a5ef1306342794866a9897c32af0b
+        with:
+          package-path: "${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage"
+          include-files: metaList
+
       - name: Create Zip (App)
         uses: thedoctor0/zip-release@09336613be18a8208dfa66bd57efafd9e2685657
         with:
@@ -94,5 +102,6 @@ jobs:
           tag_name: ${{ steps.version.outputs.prop }}
           files: |
             ${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip
+            ${{ env.packageName }}-${{ steps.version.outputs.prop }}.unitypackage
             Packages/${{ env.packageName }}/package.json
             ${{ env.applicationName }}-${{ steps.version.outputs.prop }}-executable.zip
