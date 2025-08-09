@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Animations;
 using VRC.SDK3.Avatars.ScriptableObjects;
 using VRC.SDK3.Dynamics.Constraint.Components;
 using Object = UnityEngine.Object;
@@ -43,6 +44,12 @@ namespace Internal.Generator
         public GameObject go_calibrationMesh;
         public VRCPositionConstraint constraint_calibration_position;
         public VRCAimConstraint constraint_calibration_aim;
+        
+        // ChilloutVR
+        public bool isChilloutVR;
+        public PositionConstraint CVR__constraint_calibration_position;
+        public AimConstraint CVR__constraint_calibration_aim;
+        public ParentConstraint CVR__constraint_system_freezeToWorld;
     }
     
 #if UNITY_EDITOR
@@ -77,9 +84,12 @@ namespace Internal.Generator
 
         private void Generate(Internal_PositionSystemToExternalProgram my)
         {
+            // ReSharper disable once InconsistentNaming
+            var isVRC = !my.isChilloutVR;
+            
             aac = AacV1.Create(new AacConfiguration
             {
-                SystemName = "PositionSystemToExternalProgram",
+                SystemName = isVRC ? "PositionSystemToExternalProgram" : "ChilloutVR-AbsolutePaths-PositionSystemToExternalProgram",
                 AnimatorRoot = my.systemRoot.transform,
                 AssetContainer = null,
                 ContainerMode = AacConfiguration.Container.Never,
@@ -112,9 +122,13 @@ namespace Internal.Generator
                 var enabledParam = layer.FloatParameter(Param_Enabled);
                 var enabledAndVisibleParam = layer.FloatParameter(Param_EnabledAndVisible);
 
-                toEnabledTRANSITION.Driving(driver => driver.Sets(enabledAndVisibleParam, 0f).Locally());
-                toEnabledAndVisibleTRANSITION.Driving(driver => driver.Sets(enabledParam, 0f).Locally());
+                if (isVRC)
+                {
+                    toEnabledTRANSITION.Driving(driver => driver.Sets(enabledAndVisibleParam, 0f).Locally());
+                    toEnabledAndVisibleTRANSITION.Driving(driver => driver.Sets(enabledParam, 0f).Locally());
+                }
 
+                // VRC and CVR both have IsLocal:bool, so we don't need to change this.
                 disabled.TransitionsTo(enabled)
                     .When(layer.Av3().ItIsLocal()).And(enabledParam.IsGreaterThan(0.5f));
                 disabled.TransitionsTo(enabledAndVisible)
@@ -167,19 +181,41 @@ namespace Internal.Generator
                     .Animating(clip =>
                     {
                         // In the object hierarchy, the weight is 0 in order to keep it at the origin. It IS normal to set the weight to 1 on both branches
-                        clip.Animates(my.constraint_calibration_position, "GlobalWeight").WithOneFrame(1f);
-                        clip.Animates(my.constraint_calibration_position, "FreezeToWorld").WithOneFrame(1f);
-                        clip.Animates(my.constraint_calibration_aim, "GlobalWeight").WithOneFrame(1f);
-                        clip.Animates(my.constraint_calibration_aim, "FreezeToWorld").WithOneFrame(1f);
+                        if (isVRC)
+                        {
+                            clip.Animates(my.constraint_calibration_position, "GlobalWeight").WithOneFrame(1f);
+                            clip.Animates(my.constraint_calibration_position, "FreezeToWorld").WithOneFrame(1f);
+                            clip.Animates(my.constraint_calibration_aim, "GlobalWeight").WithOneFrame(1f);
+                            clip.Animates(my.constraint_calibration_aim, "FreezeToWorld").WithOneFrame(1f);
+                        }
+                        else if (my.isChilloutVR)
+                        {
+                            clip.Animates(my.CVR__constraint_system_freezeToWorld, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_position, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_position, "m_Enabled").WithOneFrame(0f);
+                            clip.Animates(my.CVR__constraint_calibration_aim, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_aim, "m_Enabled").WithOneFrame(0f);
+                        }
                     });
                 rewiring.ResetClip(my.anim_bringToHand_bring)
                     .Animating(clip =>
                     {
                         // In the object hierarchy, the weight is 0 in order to keep it at the origin. It IS normal to set the weight to 1 on both branches
-                        clip.Animates(my.constraint_calibration_position, "GlobalWeight").WithOneFrame(1f);
-                        clip.Animates(my.constraint_calibration_position, "FreezeToWorld").WithOneFrame(0f);
-                        clip.Animates(my.constraint_calibration_aim, "GlobalWeight").WithOneFrame(1f);
-                        clip.Animates(my.constraint_calibration_aim, "FreezeToWorld").WithOneFrame(0f);
+                        if (isVRC)
+                        {
+                            clip.Animates(my.constraint_calibration_position, "GlobalWeight").WithOneFrame(1f);
+                            clip.Animates(my.constraint_calibration_position, "FreezeToWorld").WithOneFrame(0f);
+                            clip.Animates(my.constraint_calibration_aim, "GlobalWeight").WithOneFrame(1f);
+                            clip.Animates(my.constraint_calibration_aim, "FreezeToWorld").WithOneFrame(0f);
+                        }
+                        else
+                        {
+                            clip.Animates(my.CVR__constraint_system_freezeToWorld, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_position, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_position, "m_Enabled").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_aim, "m_Weight").WithOneFrame(1f);
+                            clip.Animates(my.CVR__constraint_calibration_aim, "m_Enabled").WithOneFrame(1f);
+                        }
                     });
 
                 var btBringToHand = rewiring.ResetBlendTree(my.bt_bringToHand as BlendTree)
@@ -203,63 +239,66 @@ namespace Internal.Generator
                 Debug.Log($"{o} {o.GetType()}");
             }
 
-            my.parameters.parameters = new VRCExpressionParameters.Parameter[]
+            if (isVRC)
             {
-                new()
+                my.parameters.parameters = new VRCExpressionParameters.Parameter[]
                 {
-                    name = Param_Enabled,
-                    networkSynced = false,
-                    saved = false,
-                    valueType = VRCExpressionParameters.ValueType.Bool
-                },
-                new()
-                {
-                    name = Param_EnabledAndVisible,
-                    networkSynced = true,
-                    saved = false,
-                    valueType = VRCExpressionParameters.ValueType.Bool
-                },
-                new()
-                {
-                    name = Param_BringToHand,
-                    networkSynced = true,
-                    saved = false,
-                    valueType = VRCExpressionParameters.ValueType.Bool
-                }
-            };
+                    new()
+                    {
+                        name = Param_Enabled,
+                        networkSynced = false,
+                        saved = false,
+                        valueType = VRCExpressionParameters.ValueType.Bool
+                    },
+                    new()
+                    {
+                        name = Param_EnabledAndVisible,
+                        networkSynced = true,
+                        saved = false,
+                        valueType = VRCExpressionParameters.ValueType.Bool
+                    },
+                    new()
+                    {
+                        name = Param_BringToHand,
+                        networkSynced = true,
+                        saved = false,
+                        valueType = VRCExpressionParameters.ValueType.Bool
+                    }
+                };
 
-            my.menu.controls = new List<VRCExpressionsMenu.Control>
-            {
-                new()
+                my.menu.controls = new List<VRCExpressionsMenu.Control>
                 {
-                    name = "Enabled",
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_Enabled },
-                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                },
-                new()
-                {
-                    name = "Enabled and Visible",
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_EnabledAndVisible },
-                    type = VRCExpressionsMenu.Control.ControlType.Toggle,
-                },
-                new()
-                {
-                    name = " ",
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = "" },
-                    type = VRCExpressionsMenu.Control.ControlType.Button,
-                    icon = my.icon_blank,
-                },
-                new()
-                {
-                    name = "Calibrate to Hand",
-                    parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_BringToHand },
-                    type = VRCExpressionsMenu.Control.ControlType.Button,
-                },
-            };
-            my.menu.Parameters = my.parameters;
-            
-            EditorUtility.SetDirty(my.parameters);
-            EditorUtility.SetDirty(my.menu);
+                    new()
+                    {
+                        name = "Enabled",
+                        parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_Enabled },
+                        type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    },
+                    new()
+                    {
+                        name = "Enabled and Visible",
+                        parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_EnabledAndVisible },
+                        type = VRCExpressionsMenu.Control.ControlType.Toggle,
+                    },
+                    new()
+                    {
+                        name = " ",
+                        parameter = new VRCExpressionsMenu.Control.Parameter { name = "" },
+                        type = VRCExpressionsMenu.Control.ControlType.Button,
+                        icon = my.icon_blank,
+                    },
+                    new()
+                    {
+                        name = "Calibrate to Hand",
+                        parameter = new VRCExpressionsMenu.Control.Parameter { name = Param_BringToHand },
+                        type = VRCExpressionsMenu.Control.ControlType.Button,
+                    },
+                };
+                my.menu.Parameters = my.parameters;
+                
+                EditorUtility.SetDirty(my.parameters);
+                EditorUtility.SetDirty(my.menu);
+            }
 
             rewiring.SetDirtyAll();
         }
