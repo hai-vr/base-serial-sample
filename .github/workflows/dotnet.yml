@@ -143,7 +143,7 @@ jobs:
         with:
           tag_name: ${{ needs.build-windows.outputs.version }}
           files: |
-            ${{ env.packageName }}-${{ needs.build-windows.outputs.version }}.zip
-            ${{ env.packageName }}-${{ needs.build-windows.outputs.version }}.unitypackage
-            Packages/${{ env.packageName }}/package.json
-            ${{ env.applicationName }}-${{ needs.build-windows.outputs.version }}-executable.zip
+            unity-packages/${{ env.packageName }}-${{ needs.build-windows.outputs.version }}.zip
+            unity-packages/${{ env.packageName }}-${{ needs.build-windows.outputs.version }}.unitypackage
+            unity-packages/Packages/${{ env.packageName }}/package.json
+            windows-executable/${{ env.applicationName }}-${{ needs.build-windows.outputs.version }}-executable.zip
