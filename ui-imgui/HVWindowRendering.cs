@@ -4,7 +4,7 @@ using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
 
-namespace Hai.PositionSystemToExternalProgram.Program;
+namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 public class HVWindowRendering
 {

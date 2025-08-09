@@ -2,7 +2,7 @@
 using Hai.PositionSystemToExternalProgram.Configuration;
 using ImGuiNET;
 
-namespace Hai.PositionSystemToExternalProgram.Program;
+namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 public class UiRoboticsTab
 {

@@ -2,11 +2,12 @@ using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Decoder;
+using Hai.PositionSystemToExternalProgram.Program;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
 
-namespace Hai.PositionSystemToExternalProgram.Program;
+namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 public class UiMainApplication
 {

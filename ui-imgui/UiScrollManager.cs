@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
 using ImGuiNET;
 
+namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
+
 internal class UiScrollManager
 {
     private bool _isScrollDragging;
