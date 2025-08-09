@@ -83,9 +83,12 @@ jobs:
           type: "zip"
           directory: "Packages/${{env.packageName}}/"
           filename: "../../${{ env.packageName }}-${{ steps.version.outputs.prop }}.zip" # make the zip file two directories up, since we start two directories in above
-
-      - run: find "Packages/${{env.packageName}}/" -name \*.meta >> metaList
-        
+          
+      - name: Find meta files
+        shell: pwsh
+        run: |
+          Get-ChildItem -Path "Packages/${{env.packageName}}/" -Filter "*.meta" -Recurse | ForEach-Object { $_.FullName } | Out-File -FilePath "metaList" -Encoding utf8
+          
       - name: Create UnityPackage
         uses: pCYSl5EDgo/create-unitypackage@cfcd3cf0391a5ef1306342794866a9897c32af0b
         with:
