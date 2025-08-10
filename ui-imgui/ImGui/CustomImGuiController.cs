@@ -2,6 +2,7 @@
 using System.Reflection;
 using Veldrid;
 using System.Runtime.CompilerServices;
+using Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 namespace ImGuiNET
 {
@@ -100,6 +101,19 @@ namespace ImGuiNET
             //     configMerge.MergeMode = true;
             //     io.Fonts.AddFontFromFileTTF(HAssets.KiwiMaruJaFont.Absolute(), sizePixels, configMerge, io.Fonts.GetGlyphRangesJapanese());
             // }
+
+#if WIP_SUPPORTS_TRADITIONAL_CHINESE
+            unsafe
+            {
+                //
+                var sizePixels = 24f;
+                ImFontConfigPtr configMerge = ImGuiNative.ImFontConfig_ImFontConfig();
+                configMerge.OversampleH = 2;
+                configMerge.OversampleV = 2;
+                configMerge.MergeMode = true;
+                io.Fonts.AddFontFromFileTTF(PAssets.TraditionalChineseFont.Absolute(), sizePixels, configMerge, io.Fonts.GetGlyphRangesChineseFull());
+            }
+#endif
         }
 
         public void WindowResized(int width, int height)

@@ -37,6 +37,8 @@ public class SavedData
     public float roboticsOffsetAngleDegR2 = 0f;
 
     public bool useWebsockets = false;
+    
+    public string locale = "en";
 
     public void SetWindowCoordinatesToDefault()
     {

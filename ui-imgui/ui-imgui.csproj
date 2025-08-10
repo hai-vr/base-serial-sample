@@ -5,6 +5,7 @@
         <RootNamespace>imgui_ui</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
 
@@ -15,6 +16,7 @@
         <PackageReference Include="Veldrid" Version="4.9.0"/>
         <PackageReference Include="Veldrid.ImageSharp" Version="4.9.0"/>
         <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0"/>
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
     </ItemGroup>
 
     <ItemGroup>
@@ -31,4 +33,24 @@
     <ItemGroup>
         <ProjectReference Include="..\application-loop\application-loop.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="HAssets\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="PAssets\fonts\NotoSansTC-VariableFont_wght.ttf">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="pstoep_localization.en.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="pstoep_localization.zh-hant.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>HV_DEBUG</DefineConstants>
+    </PropertyGroup>
 </Project>

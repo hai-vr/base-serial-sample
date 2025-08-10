@@ -4,13 +4,14 @@ public class LocalizationPhrase
 {
     public static string LocalizeOrElse(Type localizationGroup, string localizationKey, string englishPhrase)
     {
-        return englishPhrase;
+        return Localization.LocalizeOrElse(localizationGroup, localizationKey, englishPhrase);
     }
     
     public class MainLocalizationPhrase
     {
         private static string LocalizeOrElse(string localizationKey, string englishPhrase) => LocalizationPhrase.LocalizeOrElse(typeof(MainLocalizationPhrase), localizationKey, englishPhrase);
 
+        public static string Separator => "-----------------------------";
         public static string CameraLabel => LocalizeOrElse(nameof(CameraLabel), "Camera");
         public static string CameraPositionLabel => LocalizeOrElse(nameof(CameraPositionLabel), "Camera Position");
         public static string CameraRotationLabel => LocalizeOrElse(nameof(CameraRotationLabel), "Camera Rotation");
@@ -58,6 +59,7 @@ public class LocalizationPhrase
     {
         private static string LocalizeOrElse(string localizationKey, string englishPhrase) => LocalizationPhrase.LocalizeOrElse(typeof(RoboticsLocalizationPhrase), localizationKey, englishPhrase);
         
+        public static string Separator => "-----------------------------";
         public static string AutoAdjustRootLabel => LocalizeOrElse(nameof(AutoAdjustRootLabel), "Auto-adjust root (Root PID controller)");
         public static string AutoUpdateLabel => LocalizeOrElse(nameof(AutoUpdateLabel), "Auto-update");
         public static string CommandLabel => LocalizeOrElse(nameof(CommandLabel), "Command");

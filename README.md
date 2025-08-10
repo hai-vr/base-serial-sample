@@ -221,3 +221,4 @@ Dependencies included through NuGet:
 
 Asset dependencies:
 - ProggyClean font @ http://www.proggyfonts.net/ ([MIT License (According to https://github.com/ocornut/imgui/blob/master/docs/FONTS.md#creditslicenses-for-fonts-included-in-repository)](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md#creditslicenses-for-fonts-included-in-repository)) by Tristan Grimmer
+- Roboto font @ https://fonts.google.com/specimen/Roboto/about ([SIL Open Font License](https://fonts.google.com/attribution)) by Christian Robertson, Paratype, Font Bureau

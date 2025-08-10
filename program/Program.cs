@@ -30,6 +30,8 @@ internal class MainApp
     {
         var config = SavedData.OpenConfig();
         
+        Localization.InitializeAndProvideFor(config.locale);
+        
         var serial = new TcodeSerial();
         var ovrStarter = new OpenVrStarter();
         var ovrExtractor = new OpenVrExtractor(ovrStarter);
