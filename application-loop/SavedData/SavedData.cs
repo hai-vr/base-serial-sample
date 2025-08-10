@@ -50,8 +50,8 @@ public class SavedData
 
     public void SetVrCoordinatesToDefault()
     {
-        vrCoordinates.x = 0;
-        vrCoordinates.y = 0;
+        vrCoordinates.x = 1;
+        vrCoordinates.y = 1;
         vrCoordinates.anchorX = 0f;
         vrCoordinates.anchorY = 0.5f;
         vrUseRightEye = false;
