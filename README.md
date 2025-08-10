@@ -1,14 +1,28 @@
 ﻿Position System to External Program
 ====
 
-*Position System to External Program* is a **shader** and a **program** that lets you connect the position of standard DPS-like lights
+*Position System to External Program* is a **prefab** and a **program** that lets you connect the position of standard DPS-like lights
 to a robotic arm.
 
-Other users can remotely control the position and rotation of your robotic arm through a shared virtual space.
+Other users can remotely control the position and rotation of your robotic arm through the virtual space.
+
+> [!TIP]
+> Only the **computer connected** to the robotic arm needs the software and the prefab. The other users in the virtual space do not need it,
+> they just need a standard DPS-like light.
+>
+> If they already have a standard DPS-like light, then they can control your robotic arm, no additional setup needed from them.
+
+## How is it done?
+
+This is achieved by encoding pixels to the window screen or the image that is projected into the HMD using a special shader.
+Our program then reads those pixels.
+
+Data extraction is done using **harmless screen capture** techniques similar to those used by window and VR live-streaming capture programs.
+There is no tampering of the computer program nor any active process. There is no OSC either.
 
 In addition:
 - The position and rotation of the camera in world space is also extracted. This could be used to pin SteamVR overlays in world space.
-- This optionally exposes a WebSocket service to enable direct control of the robotic arm from virtual space systems like *Resonite*.
+- This optionally exposes a WebSocket service to enable control of the robotic arm from virtual space systems like Resonite.
 
 # User documentation
 
