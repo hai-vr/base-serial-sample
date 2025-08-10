@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net7.0</TargetFramework>
+        <RootNamespace>thirdparty_licenses</RootNamespace>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\IMGUI-OCORNUT-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\IMGUINET-ERICMELLINO-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\IMGUINETSAMPLEPROGRAM-ERICMELLINO-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\OPENVR-VALVE-BSD3.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\OPENVRSCREENGRAB-CNLOHR-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\ROBOTO-SILOFL.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\VELDRID-ERICMELLINO-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\THIRDPARTY-LICENSES\VORTICEWINDOWS-AMERKOLECI-MIT.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="ThirdParty\README.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="LICENSE.md">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+</Project>

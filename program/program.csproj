@@ -23,10 +23,14 @@
         <ProjectReference Include="..\tcode\tcode.csproj"/>
         <ProjectReference Include="..\application-loop\application-loop.csproj"/>
         <ProjectReference Include="..\ui-imgui\ui-imgui.csproj"/>
+        <ProjectReference Include="..\thirdparty-licenses\thirdparty-licenses.csproj"/>
     </ItemGroup>
 
     <ItemGroup>
       <None Update="favicon.ico">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+      <None Update="README.txt">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>

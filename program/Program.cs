@@ -9,6 +9,7 @@ using Hai.PositionSystemToExternalProgram.ApplicationLoop;
 using Hai.PositionSystemToExternalProgram.ImGuiProgram;
 using Hai.PositionSystemToExternalProgram.Robotics;
 using Hai.PositionSystemToExternalProgram.Services.Websockets;
+using Hai.PositionSystemToExternalProgram.ThirdPartyLicenses;
 
 namespace Hai.PositionSystemToExternalProgram.Program;
 
@@ -28,6 +29,8 @@ internal class MainApp
 
     private MainApp()
     {
+        new ThirdParty();
+        
         var config = SavedData.OpenConfig();
         
         Localization.InitializeAndProvideFor(config.locale);

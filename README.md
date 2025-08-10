@@ -219,12 +219,13 @@ await send_message()
 
 ### Third-party acknowledgements
 
-Third party acknowledgements can also be found in the HThirdParty/ subfolder:
-- Open HThirdParty/thirdparty-lookup.json
-- For the full license text of the third party dependencies, open HThirdParty/THIRDPARTY-LICENSES/ folder
+Third party acknowledgements can also be found in the thirdparty-licenses/ThirdParty/ subfolder:
+- For the full license text of the third party dependencies, open thirdparty-licenses/THIRDPARTY-LICENSES/ folder
 
 Included in source code form and DLLs:
 - ImGui.NET SampleProgram @ https://github.com/ImGuiNET/ImGui.NET/tree/master/src/ImGui.NET.SampleProgram ([MIT license](https://github.com/ImGuiNET/ImGui.NET/blob/master/LICENSE)) by Eric Mellino and ImGui.NET contributors
+- OpenVR API @ https://github.com/ValveSoftware/openvr ([BSD-3-Clause license](https://github.com/ValveSoftware/openvr/blob/master/LICENSE)) by Valve Corporation
+- openvr-screengrab @ https://github.com/cnlohr/openvr-screengrab ([MIT license](https://github.com/cnlohr/openvr-screengrab/blob/master/LICENSE)) by CNLohr
 
 Dependencies included through NuGet:
 - Dear ImGui @ https://github.com/ocornut/imgui ([MIT license](https://github.com/ocornut/imgui/blob/master/LICENSE.txt)) by Omar Cornut
