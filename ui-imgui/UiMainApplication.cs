@@ -161,7 +161,16 @@ public class UiMainApplication
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
         _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged |= _roboticsTab.RoboticsTab(); });
-        _scrollManager.MakeTab(RoboticsAdvancedLabel, () => { anyChanged |= _roboticsTab.RoboticsAdvancedTab(); });
+        _scrollManager.MakeTab(RoboticsAdvancedLabel, () =>
+        {
+            var anyRoboticsConfigChanged = _roboticsTab.RoboticsAdvancedTab();
+            anyChanged |= anyRoboticsConfigChanged;
+            
+            if (anyRoboticsConfigChanged)
+            {
+                _uiActions.ConfigRoboticsUpdated();
+            }
+        });
         _scrollManager.MakeTab(DataCalibrationLabel, () =>
         {
             ImGui.SeparatorText(ExtractorPreferenceLabel);

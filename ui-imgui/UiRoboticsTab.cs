@@ -92,15 +92,15 @@ public class UiRoboticsTab
         anyRoboticsConfigurationChanged |= ImGui.Checkbox(LimitLateralMovementAtTheBottom, ref _config.roboticsSafetyUsePolarMode);
         if (!_config.roboticsSafetyUsePolarMode) ResetButtonWarning(MsgNotLimitedWarning);
 
-        if (anyRoboticsConfigurationChanged)
-        {
-            _uiActions.ConfigRoboticsUpdated();
-        }
-
         if (_config.roboticsRotateSystemAngleDegPitch != 0)
         {
             ImGui.NewLine();
             anyRoboticsConfigurationChanged |= RoboticsAdvancedTab();
+        }
+
+        if (anyRoboticsConfigurationChanged)
+        {
+            _uiActions.ConfigRoboticsUpdated();
         }
             
         ImGui.NewLine();

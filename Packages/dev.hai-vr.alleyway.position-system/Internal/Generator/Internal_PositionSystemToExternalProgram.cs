@@ -213,7 +213,7 @@ namespace Internal.Generator
                             clip.Animates(my.constraint_calibration_aim, "GlobalWeight").WithOneFrame(1f);
                             clip.Animates(my.constraint_calibration_aim, "FreezeToWorld").WithOneFrame(0f);
                         }
-                        else
+                        else if (my.isChilloutVR)
                         {
                             clip.Animates(my.CVR__constraint_system_freezeToWorld, "m_Weight").WithOneFrame(1f);
                             clip.Animates(my.CVR__constraint_calibration_position, "m_Weight").WithOneFrame(1f);
