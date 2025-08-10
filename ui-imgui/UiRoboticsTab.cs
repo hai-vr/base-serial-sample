@@ -6,26 +6,6 @@ namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 public class UiRoboticsTab
 {
-    private const string AutoUpdateLabel = "Auto-update";
-    private const string CommandLabel = "Command";
-    private const string HardLimits = "Hard limits";
-    private const string LimitLateralMovementAtTheBottom = "Limit movement at the bottom";
-    private const string OffsetPitchAngleLabel = "Offset pitch angle";
-    private const string OffsetsLabel = "Offsets";
-    private const string ResetLabel = "Reset";
-    private const string RoboticsConfigurationLabel = "Robotics configuration";
-    private const string SafetySettingsLabel = "Safety settings";
-    private const string SubmitLabel = "Submit";
-    private const string VirtualScaleLabel = "Virtual scale";
-    private const string RotateMachineLabel = "Rotate machine";
-    
-    private const string MsgHardLimitsHelper = "Hard limits are applied after PID controllers. PID controllers will remain unaware that a limit has been applied.";
-    private const string MsgNotDefaultWarning = "This value is not the default. If you think something is strange with the machine behaviour, press the Reset button.";
-    private const string MsgNotLimitedWarning = "The movement of the machine is not limited. If you are using a machine that is capable of moving laterally to the main axis, this can pose a risk.";
-    private const string MsgRotateMachineHelper = "This will rotate the entire machine, so that the movement in the virtual space in one direction results in a different direction in the physical space.";
-    private const string MsgVirtualScaleHelper = "A value greater than 1 means it takes more travel in the virtual space to move the same distance in the physical space.";
-    private const string ResetVirtualScaleLabel = "Reset virtual scale";
-
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
 
@@ -42,55 +22,55 @@ public class UiRoboticsTab
         
         var anyRoboticsConfigurationChanged = false;
             
-        ImGui.SeparatorText(VirtualScaleLabel);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{VirtualScaleLabel} (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
-        if (ImGui.Button(ResetVirtualScaleLabel))
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.VirtualScaleLabel);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.VirtualScaleLabel} (0 to 1)", ref _config.roboticsVirtualScale, 0.01f, 1f);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.VirtualScaleLabel} (1 to 2)", ref _config.roboticsVirtualScale, 1f, 2f);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.VirtualScaleLabel} (0 to 5)", ref _config.roboticsVirtualScale, 0.01f, 5f);
+        if (ImGui.Button(LocalizationPhrase.RoboticsLocalizationPhrase.ResetVirtualScaleLabel))
         {
             _config.roboticsVirtualScale = 1f;
             anyRoboticsConfigurationChanged = true;
         }
-        ImGui.TextWrapped(MsgVirtualScaleHelper);
-        if (_config.roboticsVirtualScale != 1f) ResetButtonWarning(MsgNotDefaultWarning);
+        ImGui.TextWrapped(LocalizationPhrase.RoboticsLocalizationPhrase.MsgVirtualScaleHelper);
+        if (_config.roboticsVirtualScale != 1f) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
             
         ImGui.NewLine();
-        ImGui.SeparatorText(HardLimits);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Limit maximum height (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
-        anyRoboticsConfigurationChanged |= ImGui.Checkbox("Compensate virtual scale", ref _config.roboticsCompensateVirtualScaleHardLimit);
-        if (ImGui.Button($"{ResetLabel}##reset_roboticsTopmostLimit"))
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.HardLimits);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.LimitMaximumHeightLabel} (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
+        anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.CompensateVirtualScaleLabel, ref _config.roboticsCompensateVirtualScaleHardLimit);
+        if (ImGui.Button($"{LocalizationPhrase.RoboticsLocalizationPhrase.ResetLabel}##reset_roboticsTopmostLimit"))
         {
             _config.roboticsTopmostHardLimit = 1f;
             _config.roboticsCompensateVirtualScaleHardLimit = true;
             anyRoboticsConfigurationChanged = true;
         }
-        ImGui.TextWrapped(MsgHardLimitsHelper);
-        if (_config.roboticsTopmostHardLimit != 1f || !_config.roboticsCompensateVirtualScaleHardLimit) ResetButtonWarning(MsgNotDefaultWarning);
+        ImGui.TextWrapped(LocalizationPhrase.RoboticsLocalizationPhrase.MsgHardLimitsHelper);
+        if (_config.roboticsTopmostHardLimit != 1f || !_config.roboticsCompensateVirtualScaleHardLimit) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
             
         ImGui.NewLine();
-        ImGui.SeparatorText(RoboticsConfigurationLabel);
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.RoboticsConfigurationLabel);
         ImGui.BeginDisabled(); // TEMP
-        anyRoboticsConfigurationChanged |= ImGui.Checkbox("Auto-adjust root (Root PID controller)", ref _config.roboticsUsePidRoot);
+        anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.AutoAdjustRootLabel, ref _config.roboticsUsePidRoot);
         ImGui.EndDisabled(); // TEMP
-        anyRoboticsConfigurationChanged |= ImGui.Checkbox("Dampen target (Target PID controller)", ref _config.roboticsUsePidTarget);
+        anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.DampenTargetLabel, ref _config.roboticsUsePidTarget);
 
         {
         }
             
         ImGui.NewLine();
-        ImGui.SeparatorText(OffsetsLabel);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat(OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
-        if (ImGui.Button($"{ResetLabel}##reset_roboticsOffsetAngleDegR2"))
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.OffsetsLabel);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat(LocalizationPhrase.RoboticsLocalizationPhrase.OffsetPitchAngleLabel, ref _config.roboticsOffsetAngleDegR2, -45, 45);
+        if (ImGui.Button($"{LocalizationPhrase.RoboticsLocalizationPhrase.ResetLabel}##reset_roboticsOffsetAngleDegR2"))
         {
             _config.roboticsOffsetAngleDegR2 = 0f;
             anyRoboticsConfigurationChanged = true;
         }
-        if (_config.roboticsOffsetAngleDegR2 != 0f) ResetButtonWarning(MsgNotDefaultWarning);
+        if (_config.roboticsOffsetAngleDegR2 != 0f) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
             
         ImGui.NewLine();
-        ImGui.SeparatorText(SafetySettingsLabel);
-        anyRoboticsConfigurationChanged |= ImGui.Checkbox(LimitLateralMovementAtTheBottom, ref _config.roboticsSafetyUsePolarMode);
-        if (!_config.roboticsSafetyUsePolarMode) ResetButtonWarning(MsgNotLimitedWarning);
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.SafetySettingsLabel);
+        anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.LimitLateralMovementAtTheBottom, ref _config.roboticsSafetyUsePolarMode);
+        if (!_config.roboticsSafetyUsePolarMode) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotLimitedWarning);
 
         if (_config.roboticsRotateSystemAngleDegPitch != 0)
         {
@@ -104,17 +84,17 @@ public class UiRoboticsTab
         }
             
         ImGui.NewLine();
-        ImGui.SeparatorText(CommandLabel);
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.CommandLabel);
         ImGui.SliderInt("L0", ref rawData.L0, 0, 9999);
         ImGui.SliderInt("L1", ref rawData.L1, 0, 9999);
         ImGui.SliderInt("L2", ref rawData.L2, 0, 9999);
         ImGui.SliderInt("R0", ref rawData.R0, 0, 9999);
         ImGui.SliderInt("R1", ref rawData.R1, 0, 9999);
         ImGui.SliderInt("R2", ref rawData.R2, 0, 9999);
-        ImGui.Checkbox(AutoUpdateLabel, ref rawData.autoUpdate);
+        ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.AutoUpdateLabel, ref rawData.autoUpdate);
             
         ImGui.BeginDisabled(!isSerialOpen || rawData.autoUpdate);
-        if (ImGui.Button(SubmitLabel))
+        if (ImGui.Button(LocalizationPhrase.RoboticsLocalizationPhrase.SubmitLabel))
         {
             _uiActions.Submit();
         }
@@ -127,11 +107,11 @@ public class UiRoboticsTab
     {
         var anyRoboticsConfigurationChanged = false;
         
-        ImGui.SeparatorText(RotateMachineLabel);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (0 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, 0, 90);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (-90 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, -90, 90);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat("Rotation pitch (-180 to 180)", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
-        if (ImGui.Button($"{ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
+        ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.RotateMachineLabel);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.RotationPitchLabel} (0 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, 0, 90);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.RotationPitchLabel} (-90 to 90)", ref _config.roboticsRotateSystemAngleDegPitch, -90, 90);
+        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.RotationPitchLabel} (-180 to 180)", ref _config.roboticsRotateSystemAngleDegPitch, -180, 180);
+        if (ImGui.Button($"{LocalizationPhrase.RoboticsLocalizationPhrase.ResetLabel}##reset_roboticsRotateSystemAngleDegPitch"))
         {
             _config.roboticsRotateSystemAngleDegPitch = 0f;
             anyRoboticsConfigurationChanged = true;
@@ -154,8 +134,8 @@ public class UiRoboticsTab
             _config.roboticsRotateSystemAngleDegPitch = 180;
             anyRoboticsConfigurationChanged = true;
         }
-        ImGui.TextWrapped(MsgRotateMachineHelper);
-        if (_config.roboticsRotateSystemAngleDegPitch != 0f) ResetButtonWarning(MsgNotDefaultWarning);
+        ImGui.TextWrapped(LocalizationPhrase.RoboticsLocalizationPhrase.MsgRotateMachineHelper);
+        if (_config.roboticsRotateSystemAngleDegPitch != 0f) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
 
         return anyRoboticsConfigurationChanged;
     }

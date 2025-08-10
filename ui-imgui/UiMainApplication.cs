@@ -2,7 +2,6 @@ using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Decoder;
-using Hai.PositionSystemToExternalProgram.Program;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -13,35 +12,6 @@ public class UiMainApplication
 {
     private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoResize;
     private const ImGuiWindowFlags WindowFlagsNoCollapse = WindowFlags | ImGuiWindowFlags.NoCollapse;
-
-    private const string CameraLabel = "Camera";
-    private const string CloseSerialLabel = "Close serial";
-    private const string DataCalibrationLabel = "Data calibration";
-    private const string DataLabel = "Data";
-    private const string DebugLabel = "Debug";
-    private const string ExtractorPreferenceLabel = "Extractor Preference";
-    private const string InterpretedDataLabel = "Interpreted data";
-    private const string LightsLabel = "Lights";
-    private const string ModeLabel = "Mode";
-    private const string MsgDataNotInitialized = "Data not initialized";
-    private const string OpenVrLabel = "OpenVR";
-    private const string RefreshLabel = "Refresh";
-    private const string ResetToDefaultsExceptWindowNameLabel = "Reset to defaults (except Window name)";
-    private const string ResetToDefaultsLabel = "Reset to defaults";
-    private const string RoboticsLabel = "Robotics";
-    private const string SpoutLabel = "Spout";
-    private const string UseRightEyeLabel = "Use right eye";
-    private const string WindowLabel = "Window";
-    private const string WindowNameLabel = "Window name";
-    
-    private const string MsgChecksumInvalid = "Checksum is failing";
-    private const string MsgChecksumOk = "Data is OK";
-    private const string MsgChecksumUnexpectedMajorVersion = "Unexpected major version";
-    private const string MsgChecksumUnexpectedVendor = "Unexpected vendor";
-    private const string MsgConnectToDeviceOnSerialPort = "Connect to device on serial port {0}";
-    private const string MsgOpenVrUnavailable = "OpenVR is not running.";
-    private const string MsgSpoutUnavailable = "Spout is not yet available in this version of the software.";
-    private const string RoboticsAdvancedLabel = "Robotics (Advanced)";
 
     private readonly UiActions _uiActions;
     private readonly SavedData _config;
@@ -115,7 +85,7 @@ public class UiMainApplication
             ImGui.EndCombo();
         }
         ImGui.SameLine();
-        if (ImGui.Button(RefreshLabel))
+        if (ImGui.Button(LocalizationPhrase.MainLocalizationPhrase.RefreshLabel))
         {
             UpdatePortNames();
         }
@@ -124,7 +94,7 @@ public class UiMainApplication
         if (isSerialOpen)
         {
             ImGui.SameLine();
-            if (ImGui.Button(CloseSerialLabel))
+            if (ImGui.Button(LocalizationPhrase.MainLocalizationPhrase.CloseSerialLabel))
             {
                 _uiActions.DisconnectSerial();
             }
@@ -133,7 +103,7 @@ public class UiMainApplication
         {
             ImGui.BeginDisabled(_selectedPortName == "");
             var port = (_selectedPortName == "" ? "UNKNOWN" : _selectedPortName);
-            if (ImGui.Button(string.Format(MsgConnectToDeviceOnSerialPort, port), new Vector2(ImGui.GetContentRegionAvail().X, 60)))
+            if (ImGui.Button(string.Format(LocalizationPhrase.MainLocalizationPhrase.MsgConnectToDeviceOnSerialPort, port), new Vector2(ImGui.GetContentRegionAvail().X, 60)))
             {
                 _uiActions.ConnectSerial(_selectedPortName);
             }
@@ -160,8 +130,8 @@ public class UiMainApplication
         
         var anyChanged = false;
         ImGui.BeginTabBar("##tabs");
-        _scrollManager.MakeTab(RoboticsLabel, () => { anyChanged |= _roboticsTab.RoboticsTab(); });
-        _scrollManager.MakeTab(RoboticsAdvancedLabel, () =>
+        _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.RoboticsLabel, () => { anyChanged |= _roboticsTab.RoboticsTab(); });
+        _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.RoboticsAdvancedLabel, () =>
         {
             var anyRoboticsConfigChanged = _roboticsTab.RoboticsAdvancedTab();
             anyChanged |= anyRoboticsConfigChanged;
@@ -171,11 +141,11 @@ public class UiMainApplication
                 _uiActions.ConfigRoboticsUpdated();
             }
         });
-        _scrollManager.MakeTab(DataCalibrationLabel, () =>
+        _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.DataCalibrationLabel, () =>
         {
-            ImGui.SeparatorText(ExtractorPreferenceLabel);
+            ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.ExtractorPreferenceLabel);
             var currentExtractor = (int)_config.extractorPreference;
-            if (ImGui.Combo(ModeLabel, ref currentExtractor, _extractorNames, _extractorNames.Length))
+            if (ImGui.Combo(LocalizationPhrase.MainLocalizationPhrase.ModeLabel, ref currentExtractor, _extractorNames, _extractorNames.Length))
             {
                 _config.extractorPreference = (ExtractorConfig)currentExtractor;
                 anyChanged = true;
@@ -183,8 +153,8 @@ public class UiMainApplication
 
             if (_config.extractorPreference is ExtractorConfig.PrioritizeSpout or ExtractorConfig.UseSpoutIfVRRunning)
             {
-                ImGui.SeparatorText(SpoutLabel);
-                ImGui.Text(MsgSpoutUnavailable);
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.SpoutLabel);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgSpoutUnavailable);
             }
             
             var anyCoordinateChanged = false;
@@ -192,16 +162,16 @@ public class UiMainApplication
             {
                 if (_config.extractorPreference == ExtractorConfig.PrioritizeVR && !isOpenVrRunning)
                 {
-                    ImGui.SeparatorText(OpenVrLabel);
-                    ImGui.Text(MsgOpenVrUnavailable);
+                    ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.OpenVrLabel);
+                    ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgOpenVrUnavailable);
                 }
-                ImGui.SeparatorText(WindowLabel);
-                anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset X", ref _config.windowCoordinates.x);
-                anyCoordinateChanged |= SmallAdjustmentSlider("Window Offset Y", ref _config.windowCoordinates.y);
-                anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor X", ref _config.windowCoordinates.anchorX, 0f, 1f);
-                anyCoordinateChanged |= ImGui.SliderFloat("Window Anchor Y", ref _config.windowCoordinates.anchorY, 0f, 1f);
-                anyCoordinateChanged |= ImGui.InputText(WindowNameLabel, ref _config.windowName, 500);
-                if (ImGui.Button(ResetToDefaultsExceptWindowNameLabel))
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.WindowLabel);
+                anyCoordinateChanged |= SmallAdjustmentSlider($"{LocalizationPhrase.MainLocalizationPhrase.WindowOffsetLabel} X", ref _config.windowCoordinates.x);
+                anyCoordinateChanged |= SmallAdjustmentSlider($"{LocalizationPhrase.MainLocalizationPhrase.WindowOffsetLabel} Y", ref _config.windowCoordinates.y);
+                anyCoordinateChanged |= ImGui.SliderFloat($"{LocalizationPhrase.MainLocalizationPhrase.WindowAnchorLabel} X", ref _config.windowCoordinates.anchorX, 0f, 1f);
+                anyCoordinateChanged |= ImGui.SliderFloat($"{LocalizationPhrase.MainLocalizationPhrase.WindowAnchorLabel} Y", ref _config.windowCoordinates.anchorY, 0f, 1f);
+                anyCoordinateChanged |= ImGui.InputText(LocalizationPhrase.MainLocalizationPhrase.WindowNameLabel, ref _config.windowName, 500);
+                if (ImGui.Button(LocalizationPhrase.MainLocalizationPhrase.ResetToDefaultsExceptWindowNameLabel))
                 {
                     anyCoordinateChanged = true;
                     _config.SetWindowCoordinatesToDefault();
@@ -209,13 +179,13 @@ public class UiMainApplication
             }
             else
             {
-                ImGui.SeparatorText(OpenVrLabel);
-                anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset X", ref _config.vrCoordinates.x);
-                anyCoordinateChanged |= SmallAdjustmentSlider("VR Offset Y", ref _config.vrCoordinates.y);
-                anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor X", ref _config.vrCoordinates.anchorX, 0f, 1f);
-                anyCoordinateChanged |= ImGui.SliderFloat("VR Anchor Y", ref _config.vrCoordinates.anchorY, 0f, 1f);
-                anyCoordinateChanged |= ImGui.Checkbox(UseRightEyeLabel, ref _config.vrUseRightEye);
-                if (ImGui.Button(ResetToDefaultsLabel))
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.OpenVrLabel);
+                anyCoordinateChanged |= SmallAdjustmentSlider($"{LocalizationPhrase.MainLocalizationPhrase.VrOffsetLabel} X", ref _config.vrCoordinates.x);
+                anyCoordinateChanged |= SmallAdjustmentSlider($"{LocalizationPhrase.MainLocalizationPhrase.VrOffsetLabel} Y", ref _config.vrCoordinates.y);
+                anyCoordinateChanged |= ImGui.SliderFloat($"{LocalizationPhrase.MainLocalizationPhrase.VrAnchorLabel} X", ref _config.vrCoordinates.anchorX, 0f, 1f);
+                anyCoordinateChanged |= ImGui.SliderFloat($"{LocalizationPhrase.MainLocalizationPhrase.VrAnchorLabel} Y", ref _config.vrCoordinates.anchorY, 0f, 1f);
+                anyCoordinateChanged |= ImGui.Checkbox(LocalizationPhrase.MainLocalizationPhrase.UseRightEyeLabel, ref _config.vrUseRightEye);
+                if (ImGui.Button(LocalizationPhrase.MainLocalizationPhrase.ResetToDefaultsLabel))
                 {
                     anyCoordinateChanged = true;
                     _config.SetVrCoordinatesToDefault();
@@ -233,13 +203,13 @@ public class UiMainApplication
             if (extractedData.IsValid())
             {
                 var interpreted = _uiActions.InterpretedData();
-                ImGui.SeparatorText(DebugLabel);
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.DebugLabel);
                 ImGui.Columns(2);
                 
-                ImGui.SeparatorText(InterpretedDataLabel);
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.InterpretedDataLabel);
                 InterpretedDebug(interpreted);
                 
-                ImGui.SeparatorText(DataLabel);
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.DataLabel);
                 DrawSieve(16, 101);
                 ImGui.Text("");
                 DrawSieve(16);
@@ -255,18 +225,18 @@ public class UiMainApplication
             
             ImGui.Columns(1);
             
-            ImGui.SeparatorText("WebSockets support");
-            var websocketChanged = ImGui.Checkbox($"Expose WebSockets on port {IWebsocketActions.WebsocketDefaultPort}", ref _config.useWebsockets);
+            ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.WebsocketsSupportLabel);
+            var websocketChanged = ImGui.Checkbox(string.Format(LocalizationPhrase.MainLocalizationPhrase.ExposeWebsocketsOnPortLabel, IWebsocketActions.WebsocketDefaultPort), ref _config.useWebsockets);
             if (websocketChanged)
             {
                 _uiActions.ConfigWebsocketsUpdated();
             }
             anyChanged |= websocketChanged;
         });
-        _scrollManager.MakeTab(DebugLabel, () =>
+        _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.DebugLabel, () =>
         {
             ImGui.BeginTabBar("##tabs_debug");
-            _scrollManager.MakeTab(LightsLabel, () =>
+            _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.LightsLabel, () =>
             {
                 var interpreted = _uiActions.InterpretedData();
                 var valid = data.validity == DataValidity.Ok;
@@ -288,10 +258,10 @@ public class UiMainApplication
                 }
                 if (!valid) ImGui.PopStyleColor();
                 
-                ImGui.SeparatorText(InterpretedDataLabel);
+                ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.InterpretedDataLabel);
                 InterpretedDebug(interpreted);
             });
-            _scrollManager.MakeTab(CameraLabel, () =>
+            _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.CameraLabel, () =>
             {
                 var extractedData = _uiActions.ExtractedData();
                 if (extractedData.IsValid())
@@ -300,29 +270,30 @@ public class UiMainApplication
                     if (decodedData.Version < 1_001_000)
                     {
                         ImGui.PushStyleColor(ImGuiCol.Text, new Vector4(1, 0, 1, 1));
-                        ImGui.Text($"Detected shader version is {decodedData.AsSemverString()}, which does not support camera position (minimum required: 1.1.0)");
+                        ImGui.Text(string.Format(LocalizationPhrase.MainLocalizationPhrase.MsgShaderDoesNotSupportCameraPosition, decodedData.AsSemverString(), "1.1.0"));
                         ImGui.PopStyleColor();
                         ImGui.NewLine();
                     }
-                    ImGui.Text($"Camera Position X: {decodedData.CameraPosition.X}");
-                    ImGui.Text($"Camera Position Y: {decodedData.CameraPosition.Y}");
-                    ImGui.Text($"Camera Position Z: {decodedData.CameraPosition.Z}");
+
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraPositionLabel} X: {decodedData.CameraPosition.X}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraPositionLabel} Y: {decodedData.CameraPosition.Y}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraPositionLabel} Z: {decodedData.CameraPosition.Z}");
                     ImGui.NewLine();
-                    ImGui.Text($"Camera Rotation X: {decodedData.CameraRotation.X}");
-                    ImGui.Text($"Camera Rotation Y: {decodedData.CameraRotation.Y}");
-                    ImGui.Text($"Camera Rotation Z: {decodedData.CameraRotation.Z}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraRotationLabel} X: {decodedData.CameraRotation.X}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraRotationLabel} Y: {decodedData.CameraRotation.Y}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.CameraRotationLabel} Z: {decodedData.CameraRotation.Z}");
                     ImGui.NewLine();
-                    ImGui.SeparatorText("SteamVR playspace");
-                    ImGui.Text($"Estimated scale: {_uiActions.VirtualScale()}");
+                    ImGui.SeparatorText(LocalizationPhrase.MainLocalizationPhrase.SteamVrPlayspaceLabel);
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.EstimatedScaleLabel}: {_uiActions.VirtualScale()}");
                 }
             });
-            _scrollManager.MakeTab(DataLabel, () =>
+            _scrollManager.MakeTab(LocalizationPhrase.MainLocalizationPhrase.DataLabel, () =>
             {
                 var extractedData = _uiActions.ExtractedData();
                 if (extractedData.IsValid())
                 {
                     var decodedData = _uiActions.Data();
-                    ImGui.Text($"Version: {decodedData.AsSemverString()}");
+                    ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.ShaderVersionLabel}: {decodedData.AsSemverString()}");
                     DrawSieve(32);
                     ImGui.NewLine();
                 }
@@ -332,7 +303,7 @@ public class UiMainApplication
 
         _scrollManager.MakeTab(VERSION.miniVersion, () =>
         {
-            ImGui.Text($"Version: {VERSION.version}");
+            ImGui.Text($"{LocalizationPhrase.MainLocalizationPhrase.SoftwareVersionLabel}: {VERSION.version}");
         });
 
         ImGui.EndTabBar();
@@ -431,19 +402,19 @@ public class UiMainApplication
         switch (data.validity)
         {
             case DataValidity.NotInitialized:
-                ImGui.Text(MsgDataNotInitialized);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgDataNotInitialized);
                 break;
             case DataValidity.Ok:
-                ImGui.Text(MsgChecksumOk);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgChecksumOk);
                 break;
             case DataValidity.InvalidChecksum:
-                ImGui.Text(MsgChecksumInvalid);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgChecksumInvalid);
                 break;
             case DataValidity.UnexpectedVendor:
-                ImGui.Text(MsgChecksumUnexpectedVendor);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgChecksumUnexpectedVendor);
                 break;
             case DataValidity.UnexpectedMajorVersion:
-                ImGui.Text(MsgChecksumUnexpectedMajorVersion);
+                ImGui.Text(LocalizationPhrase.MainLocalizationPhrase.MsgChecksumUnexpectedMajorVersion);
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
