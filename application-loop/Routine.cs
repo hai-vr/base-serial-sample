@@ -51,6 +51,7 @@ public class Routine
     private bool _hasReceivedDirectLightData;
     private InterpretedLightData _directLightData;
     private int _directExtraction;
+    private readonly Stopwatch _tickWatch = new();
 
     public event WebsocketStartRequested OnWebsocketStartRequested;
     public delegate void WebsocketStartRequested(ushort port);
@@ -189,7 +190,7 @@ public class Routine
 
     private void Update()
     {
-        var sw = Stopwatch.StartNew();
+        _tickWatch.Restart();
         while (_queuedForMain.TryDequeue(out var action))
         {
             action.Invoke();
@@ -292,7 +293,7 @@ public class Routine
         }
         
         // Limit logic to 100 fps, we don't want to extract images too fast
-        var elapsedTime = sw.ElapsedMilliseconds;
+        var elapsedTime = _tickWatch.ElapsedMilliseconds;
         if (elapsedTime < 10)
         {
             Thread.Sleep((int)(10 - elapsedTime));
