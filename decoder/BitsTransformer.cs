@@ -10,16 +10,21 @@ public class BitsTransformer
     // shader effects will write over our pixels.
     // We can't use a too low value, because tonemapping can occur and might change the blackness,
     // even in the presence of bloom.
+    private const bool UseOtsuThreshold = true;
     private const int ColorValueThresholdForTruthness = 110;
 
     private readonly PositionSystemDataLayout _dataLayout;
     private readonly bool[] _data;
+    private readonly int[] _dataInt;
+    private readonly int[] _histogram = new int[256];
+    private readonly float[] _probabilities = new float[256];
 
     public BitsTransformer(PositionSystemDataLayout dataLayout)
     {
         _dataLayout = dataLayout;
 
         _data = new bool[ExtractedDataDecoder.GroupLength * 32];
+        _dataInt = new int[ExtractedDataDecoder.GroupLength * 32];
     }
 
     public bool[] ReadBitsFromExtractedImage(byte[] monochromaticBytes, int width, int height)
@@ -40,6 +45,32 @@ public class BitsTransformer
             var x = (int)((_dataLayout.MarginPerSide + column + 0.5) * actualInterSquareDistanceW);
             var y = (int)((_dataLayout.MarginPerSide + line + 0.5) * actualInterSquareDistanceH);
 
+            var value = CalculateAverage(x, y);
+            if (UseOtsuThreshold)
+            {
+                _dataInt[i] = (int)value;
+            }
+            else
+            {
+                var truthness = value > ColorValueThresholdForTruthness;
+                _data[i] = truthness;
+            }
+        }
+
+        if (UseOtsuThreshold)
+        {
+            var threshold = CalculateOtsuThreshold();
+            for (var i = 0; i < _dataInt.Length; i++)
+            {
+                var value = _dataInt[i];
+                _data[i] = value > threshold;
+            }
+        }
+
+        return _data;
+
+        float CalculateAverage(int x, int y)
+        {
             // Calculate the average of the pixels.
             // Sampling from just one pixel makes it too sensitive and hard to align.
             var sum = 0;
@@ -59,16 +90,68 @@ public class BitsTransformer
             }
             
             var value = (float)sum / count;
-            var truthness = value > ColorValueThresholdForTruthness;
-            _data[i] = truthness;
+            return value;
+        }
 
-            bool TryGetMonochromaticIndex(int xx, int yy, out int result)
+        bool TryGetMonochromaticIndex(int xx, int yy, out int result)
+        {
+            result = yy * width + xx;
+            return result >= 0 && result < monochromaticBytes.Length;
+        }
+    }
+    
+    private int CalculateOtsuThreshold()
+    {
+        for (var i = 0; i < 256; i++)
+        {
+            _histogram[i] = 0;
+        }
+
+        var totalPixels = 0;
+        foreach (var value in _dataInt)
+        {
+            if (value is >= 0 and <= 255)
             {
-                result = yy * width + xx;
-                return result >= 0 && result < monochromaticBytes.Length;
+                _histogram[value]++;
+                totalPixels++;
             }
         }
 
-        return _data;
+        // if (totalPixels == 0) return 128;
+
+        float totalMean = 0;
+        for (var i = 0; i < 256; i++)
+        {
+            _probabilities[i] = (float)_histogram[i] / totalPixels;
+            totalMean += i * _probabilities[i];
+        }
+
+        var maxVariance = 0f;
+        int optimalThreshold = 0;
+        
+        var weightFalsy = 0f;
+        var sumFalsy = 0f;
+
+        for (var t = 0; t < 256; t++)
+        {
+            weightFalsy += _probabilities[t];
+            if (weightFalsy == 0) continue;
+
+            var wTruthy = 1 - weightFalsy;
+            if (wTruthy == 0) break;
+
+            sumFalsy += t * _probabilities[t];
+            var meanFalsy = sumFalsy / weightFalsy;
+            var meanTruthy = (totalMean - sumFalsy) / wTruthy;
+
+            var betweenVariance = weightFalsy * wTruthy * (meanFalsy - meanTruthy) * (meanFalsy - meanTruthy);
+            if (betweenVariance > maxVariance)
+            {
+                maxVariance = betweenVariance;
+                optimalThreshold = t;
+            }
+        }
+
+        return optimalThreshold;
     }
 }
