@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using Hai.PositionSystemToExternalProgram.Actions;
 using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
 using Hai.PositionSystemToExternalProgram.Extractors.OVR;
@@ -63,9 +64,9 @@ internal class MainApp
         _uiThread = new Thread(_ =>
         {
             _uiMain.Initialize();
-            _windowRendering.UiLoop(); // Blocking call. Exits when window closes.
+            _windowRendering.UiLoop(); // Blocking call. Exits when the window closes.
             
-            // When window closes, The following is called:
+            // When the window closes, we ask the application to exit.
             _routine.Finish();
         })
         {

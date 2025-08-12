@@ -1,9 +1,9 @@
 using Hai.PositionSystemToExternalProgram.ApplicationLoop;
 using Hai.PositionSystemToExternalProgram.Core;
 
-namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
+namespace Hai.PositionSystemToExternalProgram.Actions;
 
-public class UiActions
+public class UiActions : IUiActions
 {
     private readonly Routine _routine;
     private bool _configCoordinatesUpdated;
@@ -46,10 +46,10 @@ public class UiActions
         return _routine.FetchPortNames();
     }
 
-    public void Submit()
-    {
-        _routine.Enqueue(() => _routine.Submit());
-    }
+    // public void Submit()
+    // {
+        // _routine.Enqueue(() => _routine.Submit());
+    // }
 
     public void ConfigCoordinatesUpdated()
     {

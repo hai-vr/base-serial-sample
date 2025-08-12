@@ -1,21 +1,27 @@
 ﻿using System.IO.Ports;
 using System.Numerics;
+using Hai.PositionSystemToExternalProgram.Core;
 
 namespace Hai.PositionSystemToExternalProgram.Tcode;
 
-public class TcodeSerial
+public class TcodeSerial : ITransmitter
 {
+    public string PortName { get; set; } = "COM3";
+
     private SerialPort _port;
     private bool _ready;
-
-    public bool IsOpen => _port != null && _ready;
+    private Vector3 _pos010000 = Vector3.One * 5000;
+    private Vector3 _rot010000 = Vector3.One * 5000;
+    private bool _newTargetAcquired;
 
     public string[] FetchPortNames()
     {
         return SerialPort.GetPortNames();
     }
+    
+    public bool IsOpen() => _port != null && _ready;
 
-    public void OpenSerial(string portName)
+    public void Open()
     {
         if (_port != null)
         {
@@ -26,7 +32,7 @@ public class TcodeSerial
 
         try
         {
-            _port = new SerialPort(portName, 115200, Parity.None, 8, StopBits.One);
+            _port = new SerialPort(PortName, 115200, Parity.None, 8, StopBits.One);
             _port.Open();
             _ready = true;
         }
@@ -37,7 +43,7 @@ public class TcodeSerial
         }
     }
 
-    public void CloseSerial()
+    public void Close()
     {
         if (_port == null) return;
         
@@ -47,12 +53,35 @@ public class TcodeSerial
         port.Close();
     }
     
+    public void ProvideNewTarget(RoboticsCoordinates roboticsCoordinates)
+    {
+        _newTargetAcquired = true;
+        _pos010000 = new Vector3(
+            RemapTarget(roboticsCoordinates.JoystickTargetL0),
+            RemapTarget(roboticsCoordinates.JoystickTargetL1),
+            RemapTarget(roboticsCoordinates.JoystickTargetL2));
+        _rot010000 = new Vector3(
+            RemapTarget(roboticsCoordinates.AngleDegR0 / 35f),
+            RemapTarget(roboticsCoordinates.AngleDegR1 / 35f),
+            RemapTarget(roboticsCoordinates.AngleDegR2 / 35f)
+        );
+    }
+
+    public void Update(float deltaTimeMs)
+    {
+        if (_newTargetAcquired)
+        {
+            _newTargetAcquired = false;
+            TrySendCoords(_pos010000, _rot010000);
+        }
+    }
+    
     /// T-code uses coordinates from 0 to 9999, where 5000 is the middle.<br/>
     /// L0 goes up. L1 goes away. L2 goes left.<br/>
     /// R0 twists counter-clockwise from the user looking down.<br/>
     /// R1 rolls clockwise from the user looking forward.<br/>
     /// R2 leans away from the user.
-    public bool TrySendCoords(Vector3 pos010000, Vector3 rot010000)
+    private bool TrySendCoords(Vector3 pos010000, Vector3 rot010000)
     {
         try
         {
@@ -69,6 +98,11 @@ public class TcodeSerial
             Console.WriteLine($"Failed to send coords: {e.Message}");
             return false;
         }
+    }
+
+    private int RemapTarget(float joystick)
+    {
+        return (int)(5000 + joystick * 5000);
     }
     
     private void SanitizedWrite(char system, char channel, float linearValue)

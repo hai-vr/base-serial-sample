@@ -1,15 +1,16 @@
 ﻿using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Configuration;
+using Hai.PositionSystemToExternalProgram.Core;
 using ImGuiNET;
 
 namespace Hai.PositionSystemToExternalProgram.ImGuiProgram;
 
 public class UiRoboticsTab
 {
-    private readonly UiActions _uiActions;
+    private readonly IUiActions _uiActions;
     private readonly SavedData _config;
 
-    public UiRoboticsTab(UiActions uiActions, SavedData config)
+    public UiRoboticsTab(IUiActions uiActions, SavedData config)
     {
         _uiActions = uiActions;
         _config = config;
@@ -94,10 +95,10 @@ public class UiRoboticsTab
         ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.AutoUpdateLabel, ref rawData.autoUpdate);
             
         ImGui.BeginDisabled(!isSerialOpen || rawData.autoUpdate);
-        if (ImGui.Button(LocalizationPhrase.RoboticsLocalizationPhrase.SubmitLabel))
-        {
-            _uiActions.Submit();
-        }
+        // if (ImGui.Button(LocalizationPhrase.RoboticsLocalizationPhrase.SubmitLabel))
+        // {
+            // _uiActions.Submit();
+        // }
         ImGui.EndDisabled();
             
         return anyRoboticsConfigurationChanged;

@@ -16,6 +16,7 @@ public class Routine
     private const int ViveProEyeVerticalBase = 3360;
     
     private readonly TcodeSerial _serial;
+    private readonly ITransmitter _transmitter;
     private readonly OpenVrStarter _ovrStarter;
     private readonly OpenVrExtractor _ovrExtractor;
     private readonly WindowGdiExtractor _windowGdiExtractor;
@@ -46,6 +47,7 @@ public class Routine
     private double _nextStartOpenVrTime;
     private int _lastExtractionIteration;
     private long _lastRoboticsUpdate;
+    private long _lastTransmissionUpdate;
     private bool _websocketStarted;
 
     private bool _hasReceivedDirectLightData;
@@ -65,6 +67,14 @@ public class Routine
         
         _windowGdiExtractor.desiredWindowName = _config.windowName;
         VrCoordinates.source = _config.vrUseRightEye ? ExtractionSource.RightEye : ExtractionSource.LeftEye;
+
+        void CopyCoordinates(ConfigCoord from, ExtractionCoordinates to)
+        {
+            to.x = from.x;
+            to.y = from.y;
+            to.anchorX = from.anchorX;
+            to.anchorY = from.anchorY;
+        }
     }
     
     public void RefreshRoboticsConfiguration()
@@ -93,14 +103,6 @@ public class Routine
             _websocketStarted = false;
             OnWebsocketStopRequested?.Invoke();
         }
-    }
-
-    private void CopyCoordinates(ConfigCoord from, ExtractionCoordinates to)
-    {
-        to.x = from.x;
-        to.y = from.y;
-        to.anchorX = from.anchorX;
-        to.anchorY = from.anchorY;
     }
 
     public Routine(SavedData config,
@@ -143,6 +145,7 @@ public class Routine
         };
 
         _scaleEvaluator = new ScaleEvaluator();
+        _transmitter = serial;
     }
 
     public void Enqueue(Action action)
@@ -176,16 +179,17 @@ public class Routine
 
     public void TryConnectSerial(string portName)
     {
-        if (_serial.IsOpen) return;
-        
-        _serial.OpenSerial(portName);
+        if (_serial.IsOpen()) return;
+
+        _serial.PortName = portName;
+        _serial.Open();
     }
 
     public void TryDisconnectSerial()
     {
-        if (!_serial.IsOpen) return;
+        if (!_serial.IsOpen()) return;
 
-        _serial.CloseSerial();
+        _serial.Close();
     }
 
     private void Update()
@@ -279,18 +283,8 @@ public class Routine
         // TODO: Split image extraction logic update rate from robotics logic update rate.
         var roboticsCoordinates = _roboticsDriver.UpdateAndGetCoordinates(_lastRoboticsUpdate == 0 ? 10L : _globalStopwatch.ElapsedMilliseconds - _lastRoboticsUpdate);
         _lastRoboticsUpdate = _globalStopwatch.ElapsedMilliseconds;
-
-        RawSerialData.L0 = RemapTarget(roboticsCoordinates.JoystickTargetL0);
-        RawSerialData.L1 = RemapTarget(roboticsCoordinates.JoystickTargetL1);
-        RawSerialData.L2 = RemapTarget(roboticsCoordinates.JoystickTargetL2);
-        RawSerialData.R0 = RemapTarget(roboticsCoordinates.AngleDegR0 / 35f);
-        RawSerialData.R1 = RemapTarget(roboticsCoordinates.AngleDegR1 / 35f);
-        RawSerialData.R2 = RemapTarget(roboticsCoordinates.AngleDegR2 / 35f);
         
-        if (_serial.IsOpen && RawSerialData.autoUpdate)
-        {
-            Submit();
-        }
+        Submit(roboticsCoordinates);
         
         // Limit logic to 100 fps, we don't want to extract images too fast
         var elapsedTime = _tickWatch.ElapsedMilliseconds;
@@ -300,22 +294,30 @@ public class Routine
         }
     }
 
-    private int RemapTarget(float joystick)
-    {
-        return (int)(5000 + joystick * 5000);
-    }
-
     public bool IsUsingVrExtractor()
     {
         return _config.extractorPreference == ExtractorConfig.PrioritizeVR && IsOpenVrRunning;
     }
 
-    public void Submit()
+    private void Submit(RoboticsCoordinates roboticsCoordinates)
     {
-        _serial.TrySendCoords(
-            new Vector3(RawSerialData.L0, RawSerialData.L1, RawSerialData.L2),
-            new Vector3(RawSerialData.R0, RawSerialData.R1, RawSerialData.R2)
-        );
+        if (!_transmitter.IsOpen()) return;
+        
+        if (RawSerialData.autoUpdate)
+        {
+            RawSerialData.L0 = RemapTarget(roboticsCoordinates.JoystickTargetL0);
+            RawSerialData.L1 = RemapTarget(roboticsCoordinates.JoystickTargetL1);
+            RawSerialData.L2 = RemapTarget(roboticsCoordinates.JoystickTargetL2);
+            RawSerialData.R0 = RemapTarget(roboticsCoordinates.AngleDegR0 / 35f);
+            RawSerialData.R1 = RemapTarget(roboticsCoordinates.AngleDegR1 / 35f);
+            RawSerialData.R2 = RemapTarget(roboticsCoordinates.AngleDegR2 / 35f);
+        
+            _transmitter.ProvideNewTarget(roboticsCoordinates);
+        }
+
+        var duration = _globalStopwatch.ElapsedMilliseconds - _lastTransmissionUpdate;
+        _transmitter.Update(_lastTransmissionUpdate == 0 ? 10L : duration > 1000 ? 1000 : duration);
+        _lastTransmissionUpdate = _globalStopwatch.ElapsedMilliseconds;
     }
 
     public void Finish()
@@ -325,7 +327,7 @@ public class Routine
 
     public bool IsSerialOpen()
     {
-        return _serial.IsOpen;
+        return _serial.IsOpen();
     }
 
     public void ReceiveDirectControl(float positionX, float positionY, float positionZ, float normalX, float normalY, float normalZ)
@@ -352,15 +354,9 @@ public class Routine
         };
         _directExtraction++;
     }
-}
 
-public class TcodeData
-{
-    public int L0 = 5000;
-    public int L1 = 5000;
-    public int L2 = 5000;
-    public int R0 = 5000;
-    public int R1 = 5000;
-    public int R2 = 5000;
-    public bool autoUpdate = true;
+    private int RemapTarget(float joystick)
+    {
+        return (int)(5000 + joystick * 5000);
+    }
 }

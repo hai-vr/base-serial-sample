@@ -60,4 +60,8 @@ public enum ShaderV1_1_0
     Reserved50 = 50,
     
     Canary = 51,
+    
+    //
+    
+    NumberOfLines = 52
 }

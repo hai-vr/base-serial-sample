@@ -31,10 +31,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\application-loop\application-loop.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
       <Folder Include="HAssets\" />
     </ItemGroup>
 
@@ -48,6 +44,11 @@
       <None Update="pstoep_localization.zh-hant.json">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\core\core.csproj" />
+      <ProjectReference Include="..\config\config.csproj" />
     </ItemGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

@@ -1,7 +1,6 @@
 using System.Numerics;
 using Hai.PositionSystemToExternalProgram.Configuration;
 using Hai.PositionSystemToExternalProgram.Core;
-using Hai.PositionSystemToExternalProgram.Decoder;
 using ImGuiNET;
 using Veldrid;
 using Veldrid.Sdl2;
@@ -13,7 +12,7 @@ public class UiMainApplication
     private const ImGuiWindowFlags WindowFlags = ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoDocking | ImGuiWindowFlags.NoResize;
     private const ImGuiWindowFlags WindowFlagsNoCollapse = WindowFlags | ImGuiWindowFlags.NoCollapse;
 
-    private readonly UiActions _uiActions;
+    private readonly IUiActions _uiActions;
     private readonly SavedData _config;
     private readonly UiScrollManager _scrollManager = new UiScrollManager();
     
@@ -30,7 +29,7 @@ public class UiMainApplication
 
     private readonly UiRoboticsTab _roboticsTab;
 
-    public UiMainApplication(UiActions uiActions, SavedData config)
+    public UiMainApplication(IUiActions uiActions, SavedData config)
     {
         _uiActions = uiActions;
         _config = config;
@@ -386,7 +385,7 @@ public class UiMainApplication
                     ImGui.SameLine();
                 }
             }
-            if (numberOfLines == ExtractedDataDecoder.GroupLength)
+            if (numberOfLines == (int)ShaderV1_1_0.NumberOfLines)
             {
                 ImGui.SameLine();
                 ImGui.Text("  ->   " + Enum.GetName(typeof(ShaderV1_1_0), (ShaderV1_1_0)row));

@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
         <ProjectReference Include="..\decoder\decoder.csproj"/>
         <ProjectReference Include="..\extractor-gdi\extractor-gdi.csproj"/>
         <ProjectReference Include="..\extractor-openvr\extractor-openvr.csproj"/>
         <ProjectReference Include="..\robotics\robotics.csproj" />
-        <ProjectReference Include="..\tcode\tcode.csproj"/>
+        <ProjectReference Include="..\config\config.csproj" />
+        <ProjectReference Include="..\transmit-tcode\transmit-tcode.csproj" />
     </ItemGroup>
 </Project>

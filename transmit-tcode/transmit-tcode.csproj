@@ -4,9 +4,14 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>disable</Nullable>
+        <RootNamespace>tcode</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <PackageReference Include="System.IO.Ports" Version="7.0.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\core\core.csproj" />
     </ItemGroup>
 </Project>
