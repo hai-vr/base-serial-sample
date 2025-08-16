@@ -66,7 +66,7 @@ namespace Internal.Generator
         private const string Param_BringToHand = "PStoEP_BringToHand";
         
         private AacFlBase aac;
-        private Internal_Rewiring rewiring;
+        private AacFlModification rewiring;
 
         public override void OnInspectorGUI()
         {
@@ -102,11 +102,11 @@ namespace Internal.Generator
                 DefaultsProvider = new AacDefaultsProvider(writeDefaults: true),
                 AssetContainerProvider = null,
             });
-            rewiring = new Internal_Rewiring(aac);
+            rewiring = aac.Modification();
             
-            rewiring.ClearAnimatorController(my.controller);
+            rewiring.ClearAnimatorController(my.controller as AnimatorController);
             
-            var ctrl = rewiring.EditAnimatorController(my.controller);
+            var ctrl = rewiring.EditAnimatorController(my.controller as AnimatorController);
             {
                 rewiring.ResetClip(my.anim_disabled)
                     .Toggling(my.go_localOnly, false)
@@ -322,85 +322,6 @@ namespace Internal.Generator
             }
 
             rewiring.SetDirtyAll();
-        }
-    }
-
-    internal class Internal_Rewiring
-    {
-        private readonly AacFlBase _aac;
-        private readonly HashSet<Object> _objects = new();
-
-        internal Internal_Rewiring(AacFlBase aac)
-        {
-            _aac = aac;
-        }
-
-        public void SetDirtyAll()
-        {
-            foreach (var obj in _objects)
-            {
-                EditorUtility.SetDirty(obj);
-            }
-        }
-
-        public AacFlClip ResetClip(AnimationClip editClip)
-        {
-            editClip.ClearCurves();
-            return EditClip(editClip);
-        }
-
-        public AacFlClip EditClip(AnimationClip editClip)
-        {
-            _objects.Add(editClip);
-            
-            var aacClip = _aac.NewClip();
-            typeof(AacFlClip)
-                .GetField("<Clip>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(aacClip, editClip);
-
-            return aacClip;
-        }
-
-        public AacFlController EditAnimatorController(RuntimeAnimatorController controller)
-        {
-            _objects.Add(controller);
-            
-            var aacController = _aac.NewAnimatorController();
-            typeof(AacFlController).GetField("<AnimatorController>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(aacController, controller);
-
-            return aacController;
-        }
-
-        public void ClearAnimatorController(RuntimeAnimatorController controller)
-        {
-            if (controller is not AnimatorController animController) return;
-
-            _objects.Add(animController);
-            
-            while (animController.layers.Length > 0)
-            {
-                animController.RemoveLayer(0);
-            }
-            
-            var parameters = animController.parameters;
-            for (var i = parameters.Length - 1; i >= 0; i--)
-            {
-                animController.RemoveParameter(i);
-            }
-        }
-
-        public AacFlNonInitializedBlendTree ResetBlendTree(BlendTree blendTree)
-        {
-            _objects.Add(blendTree);
-
-            blendTree.children = new ChildMotion[0];
-
-            var aacBlendTree = _aac.NewBlendTree();
-            typeof(AacFlBlendTree).GetField("<BlendTree>k__BackingField", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .SetValue(aacBlendTree, blendTree);
-
-            return aacBlendTree;
         }
     }
 #endif
