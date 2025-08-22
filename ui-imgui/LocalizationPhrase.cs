@@ -84,5 +84,8 @@ public class LocalizationPhrase
         public static string MsgNotLimitedWarning => LocalizeOrElse(nameof(MsgNotLimitedWarning), "The movement of the machine is not limited. If you are using a machine that is capable of moving laterally to the main axis, this can pose a risk.");
         public static string MsgRotateMachineHelper => LocalizeOrElse(nameof(MsgRotateMachineHelper), "This will rotate the entire machine, so that the movement in the virtual space in one direction results in a different direction in the physical space.");
         public static string MsgVirtualScaleHelper => LocalizeOrElse(nameof(MsgVirtualScaleHelper), "A value greater than 1 means it takes more travel in the virtual space to move the same distance in the physical space.");
+        
+        // 1.1.0
+        public static string LimitMinimumHeightLabel => LocalizeOrElse(nameof(LimitMinimumHeightLabel), "Limit minimum height");
     }
 }

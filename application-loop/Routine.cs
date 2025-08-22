@@ -75,6 +75,7 @@ public class Routine
             configRoboticsUsePidRoot: _config.roboticsUsePidRoot,
             configRoboticsUsePidTarget: _config.roboticsUsePidTarget,
             configTopmostHardLimit: _config.roboticsTopmostHardLimit,
+            configBottommostHardLimit: _config.roboticsBottommostHardLimit,
             configOffsetAngleDegR2: _config.roboticsOffsetAngleDegR2,
             configRotateSystemAngleDegPitch: _config.roboticsRotateSystemAngleDegPitch,
             configCompensateVirtualScaleHardLimit: _config.roboticsCompensateVirtualScaleHardLimit);

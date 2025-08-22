@@ -21,6 +21,7 @@ public class RoboticsDriver
     private float _configSafetyPolarModeBottommostRadius = 0.4f;
     
     private float _configTopmostHardLimit_NeverZeroToOne = 1f;
+    private float _configBottommostHardLimit_ZeroToNeverOne = 0f;
     private bool _configCompensateVirtualSpaceHardLimit = true;
     private float _configRotateSystemAngleDegPitch = 0f;
     
@@ -116,6 +117,10 @@ public class RoboticsDriver
             }
 
             reorientedPosition /= _precalculatedEffectiveVirtualScale;
+            if (_configCompensateVirtualSpaceHardLimit && _configBottommostHardLimit_ZeroToNeverOne > 0f)
+            {
+                reorientedPosition.X += _configBottommostHardLimit_ZeroToNeverOne;
+            }
             
             var unclampedVectorUntouched = new Vector3(
                 Remap(reorientedPosition.X, 0f, 1f, -1f, 1f),
@@ -200,10 +205,18 @@ public class RoboticsDriver
         var workX = whichVector.X + _offsetJoystickTargetL0;
         if (_configTopmostHardLimit_NeverZeroToOne < 1f)
         {
-            var joystickLimit = _configTopmostHardLimit_NeverZeroToOne * 2 - 1;
-            if (workX > joystickLimit)
+            var uppermostLimit = _configTopmostHardLimit_NeverZeroToOne * 2 - 1;
+            if (workX > uppermostLimit)
             {
-                workX = joystickLimit;
+                workX = uppermostLimit;
+            }
+        }
+        if (_configBottommostHardLimit_ZeroToNeverOne > 0f)
+        {
+            var bottommostLimit = _configBottommostHardLimit_ZeroToNeverOne * 2 - 1;
+            if (workX < bottommostLimit)
+            {
+                workX = bottommostLimit;
             }
         }
         _safeJoystickTargetL0 = Clamp(workX, -1f, 1f);
@@ -283,6 +296,7 @@ public class RoboticsDriver
         bool configRoboticsUsePidRoot,
         bool configRoboticsUsePidTarget,
         float configTopmostHardLimit,
+        float configBottommostHardLimit,
         float configOffsetAngleDegR2,
         float configRotateSystemAngleDegPitch,
         bool configCompensateVirtualScaleHardLimit)
@@ -291,6 +305,11 @@ public class RoboticsDriver
         _configSafetyUsePolarMode = configRoboticsSafetyUsePolarMode;
         _configUsePidRoot = configRoboticsUsePidRoot;
         _configUsePidTarget = configRoboticsUsePidTarget;
+        if (configBottommostHardLimit >= configTopmostHardLimit)
+        {
+            configBottommostHardLimit = configTopmostHardLimit - 0.001f;
+        }
+        
         _configTopmostHardLimit_NeverZeroToOne = configTopmostHardLimit;
         if (configTopmostHardLimit <= 0f)
         {
@@ -301,6 +320,16 @@ public class RoboticsDriver
         {
             _configTopmostHardLimit_NeverZeroToOne = 1f;
         }
+        _configBottommostHardLimit_ZeroToNeverOne = configBottommostHardLimit;
+        if (configBottommostHardLimit >= 1f)
+        {
+            _configBottommostHardLimit_ZeroToNeverOne = 0.9999f;
+        }
+        else if (configBottommostHardLimit < 0f)
+        {
+            _configBottommostHardLimit_ZeroToNeverOne = 0f;
+        }
+        
         _configCompensateVirtualSpaceHardLimit = configCompensateVirtualScaleHardLimit;
         _offsetAngleDegR2 = configOffsetAngleDegR2;
         _configRotateSystemAngleDegPitch = configRotateSystemAngleDegPitch;
@@ -310,7 +339,8 @@ public class RoboticsDriver
         _precalculatedPitcher = Quaternion.CreateFromAxisAngle(new Vector3(0, 0, 1), -_configRotateSystemAngleDegPitch * (float)Math.PI / 180f);
         if (_configCompensateVirtualSpaceHardLimit)
         {
-            _precalculatedEffectiveVirtualScale = _configVirtualScale / _configTopmostHardLimit_NeverZeroToOne;
+            var totalAvailableDistance = _configTopmostHardLimit_NeverZeroToOne - _configBottommostHardLimit_ZeroToNeverOne;
+            _precalculatedEffectiveVirtualScale = _configVirtualScale / totalAvailableDistance;
         }
         else
         {

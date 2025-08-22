@@ -36,16 +36,38 @@ public class UiRoboticsTab
             
         ImGui.NewLine();
         ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.HardLimits);
-        anyRoboticsConfigurationChanged |= ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.LimitMaximumHeightLabel} (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.01f, 1f);
+        var topmostChanged = ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.LimitMaximumHeightLabel} (0 to 1)", ref _config.roboticsTopmostHardLimit, 0.0001f, 1f);
+        var bottommostChanged = ImGui.SliderFloat($"{LocalizationPhrase.RoboticsLocalizationPhrase.LimitMinimumHeightLabel} (0 to 1)", ref _config.roboticsBottommostHardLimit, 0f, 0.9999f);
+        anyRoboticsConfigurationChanged |= topmostChanged;
+        anyRoboticsConfigurationChanged |= bottommostChanged;
         anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.CompensateVirtualScaleLabel, ref _config.roboticsCompensateVirtualScaleHardLimit);
-        if (ImGui.Button($"{LocalizationPhrase.RoboticsLocalizationPhrase.ResetLabel}##reset_roboticsTopmostLimit"))
+        if (topmostChanged && _config.roboticsBottommostHardLimit >= _config.roboticsTopmostHardLimit)
+        {
+            _config.roboticsBottommostHardLimit = _config.roboticsTopmostHardLimit - 0.001f;
+            if (_config.roboticsBottommostHardLimit < 0f)
+            {
+                _config.roboticsBottommostHardLimit = 0;
+                _config.roboticsTopmostHardLimit = 0.001f;
+            }
+        }
+        if (bottommostChanged && _config.roboticsBottommostHardLimit >= _config.roboticsTopmostHardLimit)
+        {
+            _config.roboticsTopmostHardLimit = _config.roboticsBottommostHardLimit + 0.001f;
+            if (_config.roboticsTopmostHardLimit > 1f)
+            {
+                _config.roboticsTopmostHardLimit = 1f;
+                _config.roboticsBottommostHardLimit = 0.999f;
+            }
+        }
+        if (ImGui.Button($"{LocalizationPhrase.RoboticsLocalizationPhrase.ResetLabel}##reset_roboticsLimits"))
         {
             _config.roboticsTopmostHardLimit = 1f;
+            _config.roboticsBottommostHardLimit = 0f;
             _config.roboticsCompensateVirtualScaleHardLimit = true;
             anyRoboticsConfigurationChanged = true;
         }
         ImGui.TextWrapped(LocalizationPhrase.RoboticsLocalizationPhrase.MsgHardLimitsHelper);
-        if (_config.roboticsTopmostHardLimit != 1f || !_config.roboticsCompensateVirtualScaleHardLimit) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
+        if (_config.roboticsTopmostHardLimit != 1f || _config.roboticsBottommostHardLimit != 0f || !_config.roboticsCompensateVirtualScaleHardLimit) ResetButtonWarning(LocalizationPhrase.RoboticsLocalizationPhrase.MsgNotDefaultWarning);
             
         ImGui.NewLine();
         ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.RoboticsConfigurationLabel);
@@ -53,9 +75,6 @@ public class UiRoboticsTab
         anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.AutoAdjustRootLabel, ref _config.roboticsUsePidRoot);
         ImGui.EndDisabled(); // TEMP
         anyRoboticsConfigurationChanged |= ImGui.Checkbox(LocalizationPhrase.RoboticsLocalizationPhrase.DampenTargetLabel, ref _config.roboticsUsePidTarget);
-
-        {
-        }
             
         ImGui.NewLine();
         ImGui.SeparatorText(LocalizationPhrase.RoboticsLocalizationPhrase.OffsetsLabel);
