@@ -26,7 +26,7 @@ In addition:
 
 # User documentation
 
-If you are a user looking to use this software, please [check out the end-user documentation instead](https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program).
+If you are a user looking to use this software, please [check out the end-user documentation](https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program).
 
 - **[📘 Open documentation](https://alleyway.hai-vr.dev/docs/products/position-system-to-external-program)**
 
@@ -110,7 +110,7 @@ This is why there is reserved space for future use.
 | **0**  | Checksum. See [checksum](#checksum) section below.                                                                                                                                                                       |          |
 | **1**  | Time since level load, as given by `_Time.y`. Intended to let the decoder know when the data has changed<br>(i.e. for interpolation, or to detect data stalling).                                                        |          |
 | **2**  | A version identifier (x: 1366692562).                                                                                                                                                                                    |          |
-| **3**  | A version identifier (y: 1000000). Translates as 1 000 000, because the version is 1.0.0                                                                                                                                 |          |
+| **3**  | A version identifier (y: 1001000). Translates as 1 001 000, because the version is 1.1.0                                                                                                                                 |          |
 | **4**  | Position of the 0th light (x), as given by `unity_4LightPosX0[0]`, **in the MeshRenderer's local space**.                                                                                                                |          |
 | **5**  | Position of the 0th light (y), as given by `unity_4LightPosY0[0]`, **in the MeshRenderer's local space**.                                                                                                                |          |
 | **6**  | Position of the 0th light (z), as given by `unity_4LightPosZ0[0]`, **in the MeshRenderer's local space**.                                                                                                                |          |
@@ -173,7 +173,7 @@ To do this, we calculate a CRC-32 hash in the shader that this program will chec
 
 If the check fails, we reuse the last known valid data.
 
-The CRC-32 hash is based on groups 1 to 51 (inclusive). The data in 36 to 51 (inclusive) are not currently used.
+The CRC-32 hash is based on groups 1 to 51 (inclusive). The data in 42 to 51 (inclusive) are not currently used.
 However, including them as part of the checksum ensures that it is not a breaking change to add a few additional pieces of
 new data in the shader for future versions.
 
